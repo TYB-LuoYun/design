@@ -1,9 +1,10 @@
 package top.anets.controller;
 
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import top.anets.aop.MyAround;
+import top.anets.annotation.InsertParam;
+import top.anets.annotation.ReflectTest;
 
 /*****************************************************
  * @fileName: AopController
@@ -20,9 +21,13 @@ import top.anets.aop.MyAround;
 @RequestMapping("aop")
 @RestController
 public class AopController {
-    @RequestMapping("test")
-    @MyAround
-    public void testAop(Vo vo){
-        System.out.println("ok================" +vo);
+
+    private String name="12";
+
+    @RequestMapping("page")
+    @ReflectTest
+    public Integer page(   Integer pageNum, Integer pageSize, @InsertParam(value="ss") Vo vo){
+        System.out.println(pageNum+"/"+pageSize);
+        return 2;
     }
 }
