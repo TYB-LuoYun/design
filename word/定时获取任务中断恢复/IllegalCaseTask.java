@@ -40,7 +40,7 @@ public class IllegalCaseTask {
     @Autowired
     private BladeRedis bladeRedis;
 
-    private static   String access_url ="http://192.168.2.228:9008/cds/service/apply";
+    private static   String access_url ="http://192 ";
     private static final String last_update_time_key = "illegal_casetask_last_update_time_keys";
     private static final String illegalCaseTask_lock = "illegalCaseTask_lock";
     private static final String illegalCaseTask_interrupt = "illegalCaseTask_interrupt";
