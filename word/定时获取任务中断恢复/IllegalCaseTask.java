@@ -23,6 +23,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -40,7 +42,7 @@ public class IllegalCaseTask {
     @Autowired
     private BladeRedis bladeRedis;
 
-    private static   String access_url ="http://192 ";
+    private static   String access_url =" ";
     private static final String last_update_time_key = "illegal_casetask_last_update_time_keys";
     private static final String illegalCaseTask_lock = "illegalCaseTask_lock";
     private static final String illegalCaseTask_interrupt = "illegalCaseTask_interrupt";
@@ -56,7 +58,6 @@ public class IllegalCaseTask {
                 return  ReturnT.SUCCESS;
             }
             bladeRedis.set(illegalCaseTask_lock,illegalCaseTask_lock);
-            bladeRedis.expire(illegalCaseTask_lock,60*60*2);
             SysParam sysJobParam = sysParamService.getByCategoryCode("external_application", "18");
             String name = sysJobParam.getName();
             if(StringUtil.isNotBlank(name)){
@@ -72,7 +73,6 @@ public class IllegalCaseTask {
             log.error("取违法记录案件开始异常——"+e.getMessage()+"-"+e.getLocalizedMessage());
 //            return R.fail("取违法记录案件开始异常——"+e.getMessage()+"-"+e.getLocalizedMessage());
         }finally {
-
             return ReturnT.SUCCESS;
         }
     }
@@ -96,7 +96,6 @@ public class IllegalCaseTask {
         instance.add(Calendar.HOUR,-1);
 
         String url =access_url+"?appKey="+"b358af5f90434aa287b1c0c815f7c733";
-
 //      从中断记录开始跑
         Map<String, InterruptCaseRecord> interruptCaseRecords = interruptRecordGet();
         if(interruptCaseRecords != null){
@@ -106,7 +105,7 @@ public class IllegalCaseTask {
                 BeanUtils.copyProperties(item1,item);
 //              清理中断记录
                 interruptRecordClear(wfxm);
-                List<IllegalCaseRecord> list = this.getPages(url,item.getWfxw(),item.getQueryTime(),item.getNowTime(),item.getPage() );
+                List<IllegalCaseRecord> list = this.getPages(url,item.getWfxw(),item.getQueryTime(),item.getNowTime(),item.getPage() ,true);
                 if(CollectionUtil.isNotEmpty(list)){
                     for (IllegalCaseRecord each: list) {
                         try {
@@ -129,7 +128,7 @@ public class IllegalCaseTask {
                 if(StringUtil.isNotBlank(startTime)){
                     queryTimeType = startTime;
                 }
-                List<IllegalCaseRecord> list = this.getPages(url,item.getValue(),queryTimeType,nowTime,1 );
+                List<IllegalCaseRecord> list = this.getPages(url,item.getValue(),queryTimeType,nowTime,1,false );
                 if(CollectionUtil.isNotEmpty(list)){
                     for (IllegalCaseRecord each: list) {
                         try {
@@ -160,7 +159,7 @@ public class IllegalCaseTask {
             }
             Long cha = (System.currentTimeMillis() - originTime)/1000;
             log.error("获取案件记录中断，尝试恢复....第"+resumeCount+"次,恢复时间"+(cha));
-            if(cha < 60*60){
+            if(cha < 24*60*60){
                 resumeCount++;
                 this.fetchIllegalCaseRecordsReal(null,resumeCount,originTime);
             }else{
@@ -183,11 +182,21 @@ public class IllegalCaseTask {
         }
     }
 
-    private List<IllegalCaseRecord> getPages(String baseUrl ,String wfxw,String queryTime ,String nowTime,int startPage ) {
+
+
+
+    private List<IllegalCaseRecord> getPages(String baseUrl ,String wfxw,String queryTime ,String nowTime,int startPage ,boolean isRetry) {
         String url= baseUrl+"&DB_TIME>"+queryTime+"&DB_TIME<"+nowTime+ "&WFXW="+ wfxw ;
         int page = startPage;
         List<IllegalCaseRecord> objects = new ArrayList<>();
+        Integer total = null;
+        Integer size = null;
+        Integer pages = null;
         while (true){
+//          计算页数
+            if(total !=null && size != null){
+                pages =  (int) Math.ceil(BigDecimal.valueOf(total).divide(BigDecimal.valueOf(size),2, RoundingMode.HALF_UP).doubleValue());
+            }
             String pageUrl = url + "&page="+page;
             log.info("违法案件记录请求url:"+pageUrl);
             String s = null;
@@ -197,28 +206,42 @@ public class IllegalCaseTask {
             }catch (Exception e){
                 e.printStackTrace();
                 log.error("违法案件请求异常:"+e.getMessage());
-//              中断记录
-                this.interruptRecord(wfxw,page,queryTime,nowTime);
             }
             try {
                 if(s == null){
+                    //  中断记录
+                    if(!(pages != null && page > pages)){
+                        this.interruptRecord(wfxw,page,queryTime,nowTime);
+                    }
                     break;
                 }
                 Map result = JSON.parseObject(s, Map.class);
                 if(result == null){
+                    //  中断记录
+                    if(!(pages != null && page > pages)){
+                        this.interruptRecord(wfxw,page,queryTime,nowTime);
+                    }
                     break;
                 }
                 if(result.get("status")!=null && result.get("status").toString().equals("200")){
+//                  获取总页数
+                    total = (Integer) result.get("totalCount");
+                    size = (Integer) result.get("pageSize");
                     JSONArray data = (JSONArray) result.get("data");
                     if(data == null || data.size()<=0){
+                        //  中断记录
                         break;
                     }
-                    List<IllegalCaseRecord> parse = this.fromJSONArray(data);
+                    List<IllegalCaseRecord> parse = this.fromJSONArray(data,page,size,total,isRetry);
                     objects.addAll(parse);
                     page =page+1;
                     continue;
                 }else{
 //          失败处理
+                    //  中断记录
+                    if(!(pages != null && page > pages)){
+                        this.interruptRecord(wfxw,page,queryTime,nowTime);
+                    }
                     log.error("取违法记录案件-返回错误信息："+result.get("errorMsg"));
                     break;
                 }
@@ -254,28 +277,21 @@ public class IllegalCaseTask {
          bladeRedis.hDel(illegalCaseTask_interrupt,wfxm);
     }
 
-    private List<IllegalCaseRecord> fromJSONArray(JSONArray data) {
+    private List<IllegalCaseRecord> fromJSONArray(JSONArray data,Integer page,Integer size,Integer total,boolean isRetry) {
         List<IllegalCaseRecord> objects = new ArrayList<>();
         for(int i=0;i<data.size();i++){
-            Map item = (Map) data.get(i);
-            IllegalCaseRecord record = new IllegalCaseRecord();
-            if(item.get("ID")!=null){
-                record.setForId( (String) item.get("ID"));
+            
+
+
+//          计算当前所在更新条数
+            if(page!=null&&size!=null&&total!=null){
+                int pointer = (page - 1) * size + (i + 1);
+                String remark= pointer+"/"+total;
+                if(isRetry){
+                    remark+= "(失败重试页数"+page+")";
+                }
+                record.setRemark(remark);
             }
-            if(item.get("SFZMHM")!=null) {record.setIdProof((String) item.get("SFZMHM"));}
-            if(item.get("JDSBH")!=null) {record.setPublishBookNumber((String) item.get("JDSBH"));}
-            if(item.get("XM")!=null) {record.setName((String) item.get("XM"));}
-            if(item.get("HPHM")!=null) {record.setCarNo((String) item.get("HPHM"));;}
-            if(item.get("HPZL")!=null) {record.setCarNoType((String) item.get("HPZL"));}
-            if(item.get("WFXW")!=null) {record.setIllegalAct((String) item.get("WFXW"));}
-            if(item.get("WFXW_CN")!=null) {record.setIllegalActDesc((String) item.get("WFXW_CN"));}
-            if(item.get("WFDZ")!=null) {record.setIllegalActAddress((String) item.get("WFDZ"));}
-            if(item.get("XZQH")!=null) {record.setArea((String) item.get("XZQH"));}
-            if(item.get("CLZD")!=null) {record.setTotalWeight((String) item.get("CLZD"));}
-            if(item.get("WFSJ")!=null){ record.setCheckTime((String) item.get("WFSJ"));}
-            if(item.get("CLSJ")!=null) {record.setPublishTime((String) item.get("CLSJ"));}
-            if(item.get("WFJFS")!=null) {record.setIllegalScore((String) item.get("WFJFS"));}
-            if(item.get("DB_TIME")!=null) {record.setStorageTime((String) item.get("DB_TIME"));}
             objects.add(record);
         }
         return objects;
