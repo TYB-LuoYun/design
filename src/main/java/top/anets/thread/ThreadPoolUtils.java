@@ -50,7 +50,7 @@ public class ThreadPoolUtils {
                                 // 最大线程数
                                 threadNum,
                                 // 闲置线程存活时间,60分钟
-                                1000,
+                                1000*60*60,
                                 // 时间单位
                                 TimeUnit.MILLISECONDS,
                                 // 线程队列
