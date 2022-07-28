@@ -7,7 +7,7 @@ spring:
     database: 0
     host: 127.0.0.1
     port: 6379
-    password: zc123456
+    password:
     lettuce:
       pool:
         min-idle: 0
@@ -28,3 +28,4 @@ spring:
       use-generated-keys: true
       default-executor-type: REUSE
       use-actual-param-name: true
+
