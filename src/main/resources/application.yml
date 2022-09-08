@@ -29,3 +29,12 @@ spring:
       default-executor-type: REUSE
       use-actual-param-name: true
 
+
+
+file:
+  ROOT_PATH:
+
+
+#日志
+logging:
+  config: classpath:logback-dev.xml
