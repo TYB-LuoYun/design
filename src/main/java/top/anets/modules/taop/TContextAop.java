@@ -15,9 +15,9 @@
 //import java.lang.annotation.Annotation;
 //import java.lang.reflect.Field;
 //import java.lang.reflect.Method;
-//import java.util.ArrayList;
-//import java.util.Arrays;
-//import java.util.List;
+//import java.ext.ArrayList;
+//import java.ext.Arrays;
+//import java.ext.List;
 //
 ///*****************************************************
 // * @fileName: TcontextAop
@@ -94,7 +94,7 @@
 //    }
 //
 //
-//    /**
+//    /**x
 //     * 获取本类及其父类的属性的方法
 //     * @param clazz 当前类对象
 //     * @return 字段数组

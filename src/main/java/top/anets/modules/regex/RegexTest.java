@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 public class RegexTest {
     public static void main(String[] args) {
 
-       String s ="44,555,555，333,woe";
+       String s ="44,555,555，333,woe,";
         List<String> strs = new ArrayList<String>();
         Pattern p = Pattern.compile("\\w+");
         Matcher m = p.matcher(s);
@@ -23,11 +23,14 @@ public class RegexTest {
         System.out.println(strs);
 
 
+        fun();
+
+
 
 
     }
 
-    public void fun(){
+    public static  void fun(){
         String s="QKYXWEBSessionID=N2Q0M2FlODUtMzVmNy00MzhkLWFkNDMtOTAxOWU3Y2YxY2Vl; Path=/; HttpOnly; SameSite=Lax";
 
         String strs ="";

@@ -42,8 +42,8 @@ public class ThreadPoolUtils {
                         // 根据cpu数量,计算出合理的线程并发数
                         int threadNum = cpuNum * 2 + 1;
 
-                        //暂时1个 就够了
-                        threadNum = 1;
+//                        //暂时1个 就够了
+//                        threadNum = 1;
                         threadPool = new ThreadPoolExecutor(
                                 // 核心线程数
                                 threadNum - 1,
