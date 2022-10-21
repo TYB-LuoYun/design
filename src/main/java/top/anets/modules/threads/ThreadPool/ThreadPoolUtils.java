@@ -6,6 +6,14 @@ import java.util.concurrent.*;
 /**
  * @author LuoYun
  * @since 2022/6/13 16:35
+ * 注意死锁：外层需要内层执行结束的结果，内层需要外层释放的线程，两者相持不下，造成程序卡死。
+ *
+ *
+ * 核心线程池大小 : 活动线程在 队列未满的情况下  一直在核心线程数内处理任务 ；
+ * 最大线程池大小:线程池允许的最大线程数，BlockingQueue满了，当线程池中的线程数< 最大线程数时，当有新的任务到来时，会继续创建新的线程去处理
+ * 线程空闲时间: 当线程池中空闲线程数量超过了核心线程数时，多余的线程会在多长时间内被销毁
+ * 线程工作队列:任务队列，被添加到线程池中，但尚未被执行的任务；
+ * 任务拒绝策略:当任务超过了线程工作队列时，对任务的拒绝策略
  */
 public class ThreadPoolUtils {
     //使用volatile关键字保其可见性
@@ -23,7 +31,19 @@ public class ThreadPoolUtils {
      * @param runnable
      */
     public static void execute(Runnable runnable) {
+
+        log();
         getThreadPool().execute(runnable);
+    }
+
+    private static void log() {
+        System.out.println("corepoolsize:核心线程数:"+ThreadPoolUtils.getThreadPool().getCorePoolSize());
+        System.out.println("maximumpoolsize:最大线程数:" + ThreadPoolUtils.getThreadPool().getMaximumPoolSize());
+        System.out.println("poolsize:Worker(活动)线程数量:"+ThreadPoolUtils.getThreadPool().getPoolSize());
+//                  返回正在执行任务的大致线程数
+        System.out.println("taskcount:任务数"+ ThreadPoolUtils.getThreadPool().getTaskCount());
+        System.out.println("ActiveCount:正在执行任务的Worker(活动任务数)线程数量"+ThreadPoolUtils.getThreadPool().getActiveCount());
+
     }
 
     /**
@@ -131,4 +151,40 @@ public class ThreadPoolUtils {
         return priorityThreadPoolExecutor;
     }
 
+
+
+    public static void main(String[] args){
+        ThreadPoolUtils.getThreadPool().execute(new Runnable() {
+            @Override
+            public void run() {
+                for(int i=0;i<50;i++){
+                    ThreadPoolUtils.getThreadPool().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            while (true){
+                                try {
+                                    Thread.sleep(5000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    });
+                }
+
+                while (true){
+
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+
+
+            }
+        });
+    }
 }

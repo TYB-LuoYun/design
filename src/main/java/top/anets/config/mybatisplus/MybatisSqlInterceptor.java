@@ -23,17 +23,17 @@ public class MybatisSqlInterceptor implements Interceptor {
 
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
-        System.out.println("进入到SQL拦截器=====================================");
-        StatementHandler handler = (StatementHandler) invocation.getTarget();
-        BoundSql boundSql = handler.getBoundSql();
-        String sql = boundSql.getSql();
-        System.out.println("sql语句:");
-        System.out.println(sql);
-//        sql = TENANT_PATTERN.matcher(sql).replaceAll("'" + TenantContext.get() + "'");
-        Field sqlField = boundSql.getClass().getDeclaredField("sql");
-        sqlField.setAccessible(true);
-        sqlField.set(boundSql, sql);
-        System.out.println("=====================================");
+//        System.out.println("进入到SQL拦截器=====================================");
+//        StatementHandler handler = (StatementHandler) invocation.getTarget();
+//        BoundSql boundSql = handler.getBoundSql();
+//        String sql = boundSql.getSql();
+//        System.out.println("sql语句:");
+//        System.out.println(sql);
+////        sql = TENANT_PATTERN.matcher(sql).replaceAll("'" + TenantContext.get() + "'");
+//        Field sqlField = boundSql.getClass().getDeclaredField("sql");
+//        sqlField.setAccessible(true);
+//        sqlField.set(boundSql, sql);
+//        System.out.println("=====================================");
         return invocation.proceed();
     }
 }

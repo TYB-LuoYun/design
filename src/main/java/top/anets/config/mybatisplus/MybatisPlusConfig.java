@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@MapperScan("com.ruoyi.module.**.mapper")
+@MapperScan("top.anets.modules.**.mapper")
 public class MybatisPlusConfig {
 
     @Bean

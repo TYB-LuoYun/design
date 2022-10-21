@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: design # 当前服务的应用名，与nacos中的dataid的前缀匹配
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848 # 注册中心地址  nacos server
+      config:
+        server-addr: 127.0.0.1:8848 # 配置中心地址 nacos server
+        file-extension: yml # 配置中心的配置后缀
+  profiles:
+    active: dev # 指定环境为开发环境，即读取 system-server-dev.yml
+  boot:
+    admin:
+      client:
+        url: http://127.0.0.1:9002
+
+# 暴露我们的所有监控信息
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

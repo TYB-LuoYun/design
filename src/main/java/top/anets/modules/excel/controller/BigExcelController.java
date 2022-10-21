@@ -141,7 +141,7 @@ public class BigExcelController {
 //        boolean a = false;
 //        Integer integer = 0;
 //        if (!doctorExcels.isEmpty()) {
-//            List<List<DoctorExcel>> lists = BathUtil.pagingList(doctorExcels, 1000);
+//            List<List<DoctorExcel>> lists = ListUtil.pagingList(doctorExcels, 1000);
 //            lists.forEach(item->{
 //                ThreadPoolUtils.execute(new Runnable(){
 //                    @Override

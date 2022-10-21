@@ -1,5 +1,5 @@
 server:
-  port: 1399
+  port: 1398
 
 
 spring:
@@ -7,6 +7,11 @@ spring:
     multipart:
       max-file-size: 200MB
       max-request-size: 200MB
+
+  # 日期返回格式
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
   redis:
     database: 0
     host: 127.0.0.1
@@ -22,18 +27,15 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.1.229:3306/db_manage_overruns?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://127.0.0.1:3306/ftm-system?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true
     username: root
-    password: zcits123456
-
-  mybatis-plus:
-    configuration:
-      cache-enabled: true
-      use-generated-keys: true
-      default-executor-type: REUSE
-      use-actual-param-name: true
+    password: tyb
 
 
+mybatis-plus:
+  type-aliases-package: top.anets.modules.**.entity
+  # xxxMapper.xml 路径
+  mapper-locations: classpath*:top/anets/modules/**/mapper/**/*.xml
 
 file:
   ROOT_PATH:
@@ -41,4 +43,21 @@ file:
 
 #日志
 logging:
-  config: classpath:logback-dev.xml
+  config: classpath:logback-spring.xml
+
+
+xxl:
+  job:
+    admin:
+      # xxl-job后台管理界面的地址
+      addresses: http://127.0.0.1:8080/xxl-job-admin
+    executor:
+      # 此执行器的名称
+      appname: design
+      # 此执行器的端口
+      port: 38801
+      # 此执行器的日志存放路径
+      logpath: logs/xxl-job/design
+      # 此执行器的日志保存时间
+      logretentiondays: 7
+    accessToken: default_token
