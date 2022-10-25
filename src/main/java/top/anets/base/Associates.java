@@ -7,6 +7,7 @@ import javax.security.auth.callback.CallbackHandler;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -69,8 +70,7 @@ public class Associates  {
         return this;
     }
 
-
-    public <T1,T2> Associates add(  String  currentField,String  targetField ) {
+    public  Associates add(  String  currentField,String  targetField ) {
         associates.forEach(item->{
             if( item.id.equals(this.id)){
                 List<AssociateFields> associateFields = item.getAssociateFields();
@@ -88,7 +88,7 @@ public class Associates  {
     }
 
     public <T>  Associates associate(Fields.SFunction<T , ?> resultField, IService targetService) {
-        String id = new Date().getTime()+"";
+        String id = UUID.randomUUID().toString();
         Associates associate = new Associates();
         associate.setResultField(Fields.name(resultField));
         associate.setTargetService(targetService);
@@ -105,7 +105,7 @@ public class Associates  {
 
 
     public <T,T3>  Associates associate(Fields.SFunction<T , ?> resultField, IService targetService,Fields.SFunction<T3 , ?> targetField) {
-        String id = new Date().getTime()+"";
+        String id = UUID.randomUUID().toString();
         Associates associate = new Associates();
         associate.setResultField(Fields.name(resultField));
         associate.setTargetService(targetService);
@@ -126,7 +126,7 @@ public class Associates  {
 
 
     public <T,T3>  Associates associate( IService targetService,Fields.SFunction<T3 , ?> targetField) {
-        String id = new Date().getTime()+"";
+        String id = UUID.randomUUID().toString();
         Associates associate = new Associates();
 //        associate.setResultField(Fields.name(resultField));
         associate.setTargetService(targetService);
@@ -145,10 +145,7 @@ public class Associates  {
 
 
     public <T,T3>  Associates associate( IService targetService ) {
-
-
-
-        String id = new Date().getTime()+"";
+        String id = UUID.randomUUID().toString();
         Associates associate = new Associates();
 //        associate.setResultField(Fields.name(resultField));
         associate.setTargetService(targetService);
@@ -171,35 +168,6 @@ public class Associates  {
     }
 
 
-//    public <T,T3>  Associates associate(Object result, IService targetService,Fields.SFunction<T3 , ?> targetField) {
-//
-////      未来消费
-//        Consumer<Object> consumer =
-//                uploadData -> returnData(uploadData,result);
-//        String id = new Date().getTime()+"";
-//        Associates associate = new Associates();
-//        associate.setResult(result);
-//        associate.setTargetService(targetService);
-//        associate.setTargetField(Fields.name(targetField));
-//        associate.setId(id);
-//        associate.setCustom(true);
-//        associate.setConsumer(consumer);
-//        if(associates==null){
-//            associates = new ArrayList<>();
-//        }
-//        this.associates.add(associate);
-//        this.setResult(result);
-//        this.setCustom(true);
-//        this.setTargetService(targetService);
-//
-//        this.consumer=consumer;
-//        this.id = id;
-//        return this;
-//    }
-
-    private void returnData(Object uploadData,Object result) {
-       result =uploadData;
-    }
 
 
     public List<Associates> toList() {
@@ -214,4 +182,11 @@ public class Associates  {
 class AssociateFields {
     private String  currentField;
     private String  targetField;
+}
+
+
+@Data
+class Entry {
+    private String  key;
+    private Object  value;
 }

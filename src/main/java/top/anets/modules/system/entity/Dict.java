@@ -1,5 +1,6 @@
 package top.anets.modules.system.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.util.Date;
 import java.io.Serializable;
@@ -46,6 +47,7 @@ public class Dict implements Serializable {
 
     private String imgUrl;
 
+    @TableField("link_url")
     private String linkUrl;
 
     private Date updateTime;

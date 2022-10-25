@@ -231,7 +231,7 @@
     <!-- 不管root啥级别，强制显示,使用off可以强制直接关闭-->
     <!--<logger name="com.mtst.mappers" level="DEBUG" />-->
     <!-- 单独输出-->
-    <logger name="com.mtst.mappers" level="DEBUG" >
+    <logger name="top.anets.modules" level="DEBUG" >
         <appender-ref ref="console"/>
     </logger>
 

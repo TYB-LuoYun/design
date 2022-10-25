@@ -21,7 +21,6 @@ public class Models<T> {
 
 
     public static void main(String[] args){
-
     }
 
 
@@ -33,6 +32,12 @@ public class Models<T> {
     public  static  <T>    Models<T> test(Class<T> S1){
         return null;
     }
+
+    public  static  <T>   void fun(){
+        T item = null;
+
+    }
+
 }
 
 

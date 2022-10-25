@@ -14,8 +14,10 @@ import java.util.List;
 public class  SysMenuVo extends SysMenu{
      private List<Dict> associate;
     private String associate2;
-    private String associate3;
-    private String associate4;
+    private Dict associate3;
+    private List<Dict> associate4;
+    private List<Dict> associate5;
+    private Dict associate6;
 
 
 }

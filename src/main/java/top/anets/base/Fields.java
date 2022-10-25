@@ -1,5 +1,7 @@
 package top.anets.base;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+
 import java.io.Serializable;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -26,11 +28,11 @@ public class Fields   {
     /**
      * 字段名注解,声明表字段
      */
-    @Target(ElementType.FIELD)
-    @Retention(RetentionPolicy.RUNTIME)
-    public @interface TableField {
-        String value() default "";
-    }
+//    @Target(ElementType.FIELD)
+//    @Retention(RetentionPolicy.RUNTIME)
+//    public @interface TableField {
+//        String value() default "";
+//    }
 
     //默认配置
     static String defaultSplit = "";

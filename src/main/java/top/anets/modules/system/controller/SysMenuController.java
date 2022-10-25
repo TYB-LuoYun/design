@@ -89,35 +89,33 @@ public class SysMenuController  {
     @ApiOperation(value = "查询-分页-查询和返回新增字段或特殊处理")
     @RequestMapping("lists")
     public IPage lists(  SysMenuVo sysMenuVo, PageQuery query){
+        long start = System.currentTimeMillis();
         IPage  pages = sysMenuService.pages(WrapperQuery.query(sysMenuVo), query.Page());
+        WrapperQuery.wpage(pages,SysMenuVo.class)
+                .associate(dictService).add(SysMenu::getCode, Dict::getDescription).add(SysMenu::getId, Dict::getId)
+                .fetch()
+                .<List<Dict>>forEach((item,dicts)->{
+                    item.setAssociate(dicts);
+                 });
+        long end = System.currentTimeMillis();
+        System.out.println("消耗时间:"+(end-start));
+        return pages;
+    }
 
 
-//        Associates associates = Associates.build()
-//                .associate(SysMenuVo::getAssociate,dictService,Dict::getAttr2).add(SysMenu::getCode, Dict::getCode)
-//                .associate(SysMenuVo::getAssociate,dictService,Dict::getAttr2).add(SysMenu::getCode, Dict::getCode) ;
-
-
-        Associates associates = Associates.build()
-                .associate(dictService).add(SysMenu::getCode, Dict::getCode)
-                .associate(dictService,Dict::getName).add(SysMenu::getCode, Dict::getDescription)
-               ;
-
-
-        WrapperQuery.wpage(pages,SysMenuVo.class, associates).forEach((item,result) ->{
-            System.out.println(result.size());
-        } );
-
-
-
-//            WrapperQuery.wpage(pages,SysMenuVo.class)
-//                .associate(dictService,Dict::getName).add(SysMenu::getCode, Dict::getDescription)
-//                . associate(dictService,Dict::getName).add(SysMenu::getCode, Dict::getDescription)
-//                 .fetch()
-//                .handle(item,item1,item2->{
-//
-//
-//                });
-
+    @ApiOperation(value = "查询-分页-查询和返回新增字段或特殊处理")
+    @RequestMapping("lists1")
+    public IPage lists1(  SysMenuVo sysMenuVo, PageQuery query){
+        long start = System.currentTimeMillis();
+        IPage  pages = sysMenuService.pages(WrapperQuery.query(sysMenuVo), query.Page());
+        WrapperQuery.wpage(pages,SysMenuVo.class)
+                .associate(dictService).add(SysMenu::getCode, Dict::getDescription).add(SysMenu::getId, Dict::getId)
+                .fetch(false)
+                .<List<Dict>>forEach((item,dicts)->{
+                    item.setAssociate(dicts);
+                });
+        long end = System.currentTimeMillis();
+        System.out.println("消耗时间:"+(end-start));
         return pages;
     }
 

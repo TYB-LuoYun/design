@@ -1,17 +1,13 @@
 package top.anets.base;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
-import top.anets.modules.system.vo.SysMenuVo;
 
-import java.io.File;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -23,76 +19,70 @@ import java.util.regex.Pattern;
  * @Description Query条件构造器
  */
 @Data
-public class WrapperQuery<S1>   {
-
-
-    private static List<String> Exclude = Arrays.asList("current","size","total","serialVersionUID");
-
-
-
-    public  static  QueryWrapper   query(Object vo){
-       return query(objectToMap(vo));
+public class WrapperQuery<S1> {
+    private static List<String> Exclude = Arrays.asList("current", "size", "total", "serialVersionUID");
+    private static String TimeFormat = "yyyy-MM-dd HH:mm:ss";
+    public static QueryWrapper query(Object vo) {
+        return query(objectToMap(vo));
     }
-
-    public  static  QueryWrapper   query(Map<String,Object> map){
-    if(map==null){
-    return new QueryWrapper();
-    }
-    QueryWrapper wrapper = new QueryWrapper();
-    map.entrySet().forEach(item->{
-    String key = item.getKey();//字段名
-    if(Exclude.contains(key)){
-    return;
-    }
-    if(map.get(key)==null || map.get(key)==""){
-    return;
-    }
-    String column="";
-    if(key.contains("$like")){
-    column=key.replace("$like", "");
-    wrapper.like(column, map.get(key));
-    }else if(key.contains("$lt")){
-    column=key.replace("$lt", "");
-    wrapper.lt(column, map.get(key));
-    }else if(key.contains("$gt")){
-    column=key.replace("$gt", "");
-    wrapper.gt(column, map.get(key));
-    }else if(key.contains("$desc")){
-    wrapper.orderByDesc(fetchWord( map.get(key)));
-    }else if(key.contains("$notNull")){
-    List<String> strings = fetchWord(map.get(key));
-        if(strings == null){
-        return;
+    public static QueryWrapper query(Map<String, Object> map) {
+        if (map == null) {
+            return new QueryWrapper();
         }
-        strings.forEach(each->{
-        wrapper.isNotNull(each);
-        });
-        }else if(key.contains("$isNull")){
-        List<String> strings = fetchWord(map.get(key));
-            if(strings == null){
-            return;
+        QueryWrapper wrapper = new QueryWrapper();
+        map.entrySet().forEach(item -> {
+            String key = item.getKey();//字段名
+            if (Exclude.contains(key)) {
+                return;
             }
-            strings.forEach(each->{
-            wrapper.isNull(each);
-            });
-            }else if(key.contains("$")){
-    //               特殊字段什么都不用做
-    }else {
-    wrapper.eq(map.get(key)!=null, key, map.get(key));
-    }
+            if (map.get(key) == null || map.get(key) == "") {
+                return;
+            }
+            String column = "";
+            if (key.contains("$like")) {
+                column = key.replace("$like", "");
+                wrapper.like(column, map.get(key));
+            } else if (key.contains("$lt")) {
+                column = key.replace("$lt", "");
+                wrapper.lt(column, map.get(key));
+            } else if (key.contains("$gt")) {
+                column = key.replace("$gt", "");
+                wrapper.gt(column, map.get(key));
+            } else if (key.contains("$desc")) {
+                wrapper.orderByDesc(fetchWord(map.get(key)));
+            } else if (key.contains("$notNull")) {
+                List<String> strings = fetchWord(map.get(key));
+                if (strings == null) {
+                    return;
+                }
+                strings.forEach(each -> {
+                    wrapper.isNotNull(each);
+                });
+            } else if (key.contains("$isNull")) {
+                List<String> strings = fetchWord(map.get(key));
+                if (strings == null) {
+                    return;
+                }
+                strings.forEach(each -> {
+                    wrapper.isNull(each);
+                });
+            } else if (key.contains("$")) {
+                //               特殊字段什么都不用做
+            } else {
+                wrapper.eq(map.get(key) != null, key, map.get(key));
+            }
 
 
-
-    });
-    return  wrapper;
+        });
+        return wrapper;
     }
 
     public static IPage page(Map<String, Object> params) {
         Long current = (Long) params.get("current");
         Long size = (Long) params.get("size");
-        if(current==null||size==null){
-            current=1L;
-            size=Long.MAX_VALUE;
+        if (current == null || size == null) {
+            current = 1L;
+            size = Long.MAX_VALUE;
         }
         IPage page = new Page<>(current, size);
         return page;
@@ -101,25 +91,26 @@ public class WrapperQuery<S1>   {
 
     /**
      * 拷贝实体到vo
+     *
      * @param source
      * @param t
      * @param <T>
      * @return
      */
-    public  static <T> T from(Object source ,Class<T>   t){
-        if(source == null){
+    public static <T> T from(Object source, Class<T> t) {
+        if (source == null) {
             return null;
         }
         try {
             T o = t.newInstance();
-            if(source instanceof Map){
-                Map<String,Object> sourceMap = (Map<String, Object>) source;
+            if (source instanceof Map) {
+                Map<String, Object> sourceMap = (Map<String, Object>) source;
                 T t1 = map2Obj(sourceMap, t);
                 return t1;
-            }else{
+            } else {
                 BeanUtils.copyProperties(source, o);
             }
-            return  o;
+            return o;
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -128,19 +119,19 @@ public class WrapperQuery<S1>   {
 
     public static <T> QueryWrapper<T> parse(Map<String, Object> params, Class<T> classz) {
         T t = map2Obj(params, classz);
-        QueryWrapper<T> query =  WrapperQuery.query(t);
-        return  query;
+        QueryWrapper<T> query = WrapperQuery.query(t);
+        return query;
     }
 
 
 
     //java对象转map
-    public static Map<String, Object> objectToMap(Object obj)   {
+    public static Map<String, Object> objectToMap(Object obj) {
         if (obj == null) {
             return null;
         }
         Map<String, Object> map = new HashMap<String, Object>();
-        Field[] declaredFields =getAllDeclaredFields(obj.getClass());
+        Field[] declaredFields = getAllDeclaredFields(obj.getClass());
         for (Field field : declaredFields) {
             field.setAccessible(true);
             try {
@@ -153,214 +144,506 @@ public class WrapperQuery<S1>   {
     }
 
 
-    public static <T> T map2Obj(Map<String,Object> map,Class<T> clz)  {
+    public static <T> T map2Obj(Map<String, Object> map, Class<T> clz) {
         try {
             T obj = clz.newInstance();
             Field[] declaredFields = obj.getClass().getDeclaredFields();
-            for(Field field:declaredFields){
+            for (Field field : declaredFields) {
                 int mod = field.getModifiers();
-                if(Modifier.isStatic(mod) || Modifier.isFinal(mod)){
+                if (Modifier.isStatic(mod) || Modifier.isFinal(mod)) {
                     continue;
                 }
                 field.setAccessible(true);
                 field.set(obj, map.get(field.getName()));
             }
             return obj;
-        }catch ( Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
 
 
-     public static <T>  IPage<T> ipage(IPage pages,Class<T> t) {
-                        List<T> list = new LinkedList<>();
-                        pages.getRecords().forEach(item->{
-                            list.add(WrapperQuery.from(item, t));
-                        });
-                        pages.setRecords(list);
-                        return pages;
-      }
-
-
-
-    public static  <T>  IPage<T> ipage(IPage   pages,Class<T> t, Associates  associate) {
+    public static <T> IPage<T> ipage(IPage pages, Class<T> t) {
         List<T> list = new LinkedList<>();
-        List<List<Object>> array=new ArrayList<>();
-        pages.getRecords().forEach(item1->{
-            T item = associateWrapper(item1,t,associate,null,null);
-            list.add(item);
+        pages.getRecords().forEach(item -> {
+            list.add(WrapperQuery.from(item, t));
         });
         pages.setRecords(list);
         return pages;
     }
 
 
-    private   IPage<S1>  pages;
+    /**
+     * 分页查询页
+     */
+    private IPage<S1> iPage;
 
 
+    /**
+     * 自动关联结果封装
+     */
+    private Map<Integer, List<Object>> associateMap;
 
-    private  Map<Integer,List<Object>> associateMap;
 
-    public  static   < S1>  WrapperQuery<S1>  wpage(IPage   pages,Class<S1> m, Associates  associate) {
-        List<S1> list = new LinkedList<>();
-        List<List<Object>> array=new ArrayList<>();
-        Map<Integer, List<Object>> map = new HashMap<>();
-        AtomicInteger index = new AtomicInteger(0);
-        pages.getRecords().forEach(item1->{
-            S1 item = associateWrapper(item1,m,associate,map,index.intValue());
-            list.add(item);
-            index.incrementAndGet();
-        });
-        pages.setRecords(list);
-        WrapperQuery<S1> wrapperQuery = new WrapperQuery();
-        wrapperQuery.setPages(pages);
-        wrapperQuery.associateMap = map;
-        return  wrapperQuery  ;
-    }
-
-    public static  < T>  WrapperQuery<T>  wpage(IPage pages, Class<T> t) {
+    public static <T> WrapperQuery<T> wpage(IPage pages, Class<T> t) {
         List<T> list = new LinkedList<>();
-        pages.getRecords().forEach(item->{
+        pages.getRecords().forEach(item -> {
             list.add(WrapperQuery.from(item, t));
         });
         pages.setRecords(list);
         WrapperQuery<T> wrapperQuery = new WrapperQuery();
-        wrapperQuery.setPages(pages);
-        return  wrapperQuery  ;
+        wrapperQuery.setIPage(pages);
+        return wrapperQuery;
     }
 
 
-    public   void  forEach(FunctionZero<S1> item){
-         if(this.pages.getRecords()==null){
-             return;
-         }
-        this.pages.getRecords().forEach(item1->{
-        item.accept(item1);
-    });
+    public void forEach(Functions.FunctionZero<S1> item) {
+        if (this.iPage.getRecords() == null) {
+            return;
+        }
+        this.iPage.getRecords().forEach(item1 -> {
+            item.accept(item1);
+        });
     }
 
 
+    public static Method getMethod(Class<?> objClass, String methodName) throws NoSuchMethodException {
+        for (Method method : objClass.getDeclaredMethods()) {
+            if (methodName.equals(method.getName())) {
+                return method;
+            }
+        }
+        throw new NoSuchMethodException();
+    }
 
-    public void forEach(FunctionResults<S1> item) {
-        if(this.pages.getRecords()==null){
+    public static Object invoke(Object obj, String methodName, Object... args) throws ReflectiveOperationException {
+        Field overrideField = AccessibleObject.class.getDeclaredField("override");
+        overrideField.setAccessible(true);
+        Method targetMethod = getMethod(obj.getClass(), methodName);
+        overrideField.set(targetMethod, true);
+        return targetMethod.invoke(obj, args);
+    }
+
+    public static Class<?> getConsumerLambdaParameterType(Object consumer, int index) throws ReflectiveOperationException {
+        Class<?> consumerClass = consumer.getClass();
+        Object constantPool = invoke(consumerClass, "getConstantPool");
+        for (int i = (int) invoke(constantPool, "getSize") - 1; i >= 0; --i) {
+            try {
+                Member member = (Member) invoke(constantPool, "getMethodAt", i);
+                if (member instanceof Method && member.getDeclaringClass() != Object.class) {
+                    return ((Method) member).getParameterTypes()[index];
+                }
+            } catch (Exception ignored) {
+                // ignored
+            }
+        }
+        throw new NoSuchMethodException();
+    }
+
+
+    public Type getLambdaParameterType(Object object, int index) {
+        Type type = object.getClass().getGenericInterfaces()[0];
+        Type r1Clazz;
+        if (type instanceof ParameterizedType) {
+            return ((ParameterizedType) type).getActualTypeArguments()[1];
+        } else if (object.getClass().isSynthetic()) {
+            try {
+                return getConsumerLambdaParameterType(object, index);
+            } catch (ReflectiveOperationException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.err.println("not ParameterizedType");
+        }
+        return null;
+    }
+
+
+    public <R1> void forEach(Functions.FunctionOneResult<S1, R1> item) {
+        if (this.iPage.getRecords() == null) {
             return;
         }
         AtomicInteger index = new AtomicInteger(0);
-        this.pages.getRecords().forEach(item1->{
-            List<Object> result = null;
-            if(this.associateMap!=null){
-                result = this.associateMap.get(index.intValue());
-            }
-            item.accept(item1,result);
-
+        this.iPage.getRecords().forEach(item1 -> {
+            R1 result = null;
+            result = (R1) this.getResultFromAssociateMap(item, index.intValue(), 1);
+            item.accept(item1, result);
+            index.incrementAndGet();
         });
     }
 
 
+    public <R1, R2> void forEach(Functions.FunctionTwoResult<S1, R1, R2> item) {
+        if (this.iPage.getRecords() == null) {
+            return;
+        }
+        AtomicInteger index = new AtomicInteger(0);
+        this.iPage.getRecords().forEach(item1 -> {
+            R1 result1 = null;
+            R2 result2 = null;
+            result1 = (R1) this.getResultFromAssociateMap(item, index.intValue(), 1);
+            result2 = (R2) this.getResultFromAssociateMap(item, index.intValue(), 2);
+            item.accept(item1, result1, result2);
+            index.incrementAndGet();
+        });
+    }
 
 
+    public <R1, R2, R3> void forEach(Functions.FunctionThreeResult<S1, R1, R2, R3> item) {
+        if (this.iPage.getRecords() == null) {
+            return;
+        }
+        AtomicInteger index = new AtomicInteger(0);
+        this.iPage.getRecords().forEach(item1 -> {
+            R1 result1 = null;
+            R2 result2 = null;
+            R3 result3 = null;
+            result1 = (R1) this.getResultFromAssociateMap(item, index.intValue(), 1);
+            result2 = (R2) this.getResultFromAssociateMap(item, index.intValue(), 2);
+            result3 = (R3) this.getResultFromAssociateMap(item, index.intValue(), 3);
+            item.accept(item1, result1, result2, result3);
+            index.incrementAndGet();
+        });
+    }
 
-    private static <T> T associateWrapper(Object item1, Class<T> t, Associates associate,Map<Integer, List<Object>> associateMap,Integer index) {
-        List<Associates> associates = associate.getAssociates();
-        T item = WrapperQuery.from(item1, t);
-//            Map<String, Object> item = objectToMap(item1);
 
-        List<Object> results = new ArrayList<>();
-        associates.forEach(each->{
-            QueryWrapper<Object> wrapper = new QueryWrapper<>();
-            List<AssociateFields> fields = each.getAssociateFields();
-            if(fields == null){
-//                    for (int i=0;i<fields.size();i++ ) {
-//                        AssociateFields one = fields.get(i);
-//                        Object o = item.get(one.getCurrentField());
-//                        if(array.size()<=i){
-//                            array.add(new ArrayList<>());
-//                        }
-//                        array.get(i).add(o);
-//                    }
-            }else{
-                for (int i=0;i<fields.size();i++ ) {
-                    AssociateFields one = fields.get(i);
-                    wrapper.eq(one.getTargetField(),  getFieldValue(item, one.getCurrentField()));
+    public <R1, R2, R3, R4> void forEach(Functions.FunctionFourResult<S1, R1, R2, R3, R4> item) {
+        if (this.iPage.getRecords() == null) {
+            return;
+        }
+        AtomicInteger index = new AtomicInteger(0);
+        this.iPage.getRecords().forEach(item1 -> {
+            R1 result1 = null;
+            R2 result2 = null;
+            R3 result3 = null;
+            R4 result4 = null;
+            result1 = (R1) this.getResultFromAssociateMap(item, index.intValue(), 1);
+            result2 = (R2) this.getResultFromAssociateMap(item, index.intValue(), 2);
+            result3 = (R3) this.getResultFromAssociateMap(item, index.intValue(), 3);
+            result4 = (R4) this.getResultFromAssociateMap(item, index.intValue(), 4);
+            item.accept(item1, result1, result2, result3, result4);
+            index.incrementAndGet();
+        });
+    }
+
+
+    public <R1, R2, R3, R4, R5> void forEach(Functions.FunctionFiveResult<S1, R1, R2, R3, R4, R5> item) {
+        if (this.iPage.getRecords() == null) {
+            return;
+        }
+        AtomicInteger index = new AtomicInteger(0);
+        this.iPage.getRecords().forEach(item1 -> {
+            R1 result1 = null;
+            R2 result2 = null;
+            R3 result3 = null;
+            R4 result4 = null;
+            R5 result5 = null;
+            result1 = (R1) this.getResultFromAssociateMap(item, index.intValue(), 1);
+            result2 = (R2) this.getResultFromAssociateMap(item, index.intValue(), 2);
+            result3 = (R3) this.getResultFromAssociateMap(item, index.intValue(), 3);
+            result4 = (R4) this.getResultFromAssociateMap(item, index.intValue(), 4);
+            result5 = (R5) this.getResultFromAssociateMap(item, index.intValue(), 5);
+            item.accept(item1, result1, result2, result3, result4, result5);
+            index.incrementAndGet();
+        });
+    }
+
+
+    public <R1, R2, R3, R4, R5, R6> void forEach(Functions.FunctionResults<S1, R1, R2, R3, R4, R5, R6> item) {
+        if (this.iPage.getRecords() == null) {
+            return;
+        }
+        AtomicInteger index = new AtomicInteger(0);
+        this.iPage.getRecords().forEach(item1 -> {
+            R1 result1 = null;
+            R2 result2 = null;
+            R3 result3 = null;
+            R4 result4 = null;
+            R5 result5 = null;
+            R6 result6 = null;
+            result1 = (R1) this.getResultFromAssociateMap(item, index.intValue(), 1);
+            result2 = (R2) this.getResultFromAssociateMap(item, index.intValue(), 2);
+            result3 = (R3) this.getResultFromAssociateMap(item, index.intValue(), 3);
+            result4 = (R4) this.getResultFromAssociateMap(item, index.intValue(), 4);
+            result5 = (R5) this.getResultFromAssociateMap(item, index.intValue(), 5);
+            result6 = (R6) this.associateMap.get(index.intValue()).get(0);
+            item.accept(item1, result1, result2, result3, result4, result5, result6);
+            index.incrementAndGet();
+        });
+    }
+
+
+    private Object getResultFromAssociateMap(Object function, int dataIndex, int functionParamIndex) {
+        /**
+         * 判断接受类型是集合还是对象
+         */
+        Type r1Type = getLambdaParameterType(function, functionParamIndex);
+        boolean isList = List.class.isAssignableFrom((Class<?>) r1Type);
+        Object result = null;
+        try {
+            if (this.associateMap == null || this.associateMap.get(dataIndex) == null) {
+                return null;
+            }
+            List<Object> o = (List<Object>) this.associateMap.get(dataIndex).get(0);
+            if (isList == true) {
+                result = o;
+            } else {
+                if (o == null || o.size() <= 0) {
+                    result = null;
+                } else {
+                    result = o.get(0);
                 }
-                List result = each.getTargetService().list(wrapper);
-                Object finalResult = null;
-//                  封装结果
-                String resultField = each.getResultField();
-//                Object resultObject = each.getResult();
-                String targetField = each.getTargetField();
-//                    Object o = getFieldValue(item,resultField );
-                if(java.util.List.class == getFieldType(item,resultField )){
-//                        item.put(resultField, result);
-                    setFieldValue(item,resultField,result);
-                }else{
-                    if(result==null||result.size()<=0){
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+
+    /**
+     * 1结论：对于索引字段or或者in的效率基本一致，非索引字段in的效率优于or
+     * （1）or的效率为O(n)，
+     * （2）in的效率为O(logn)，当n越大的时候效率相差越明显。
+     * <p>
+     * <p>
+     * 2or 一次查询 还是 多次查询 哪个效率高
+     * 当然是一条语句效率高
+     * 因为一条语句 也就意味着只对该表中的数据执行一次从头到尾的查询
+     * 三条语句的话，要对该表数据执行三次查询
+     *
+     * @param associate
+     * @param associateMap
+     * @param <T>
+     */
+
+    private static <T> void associateWrapper(List<T> records, Associates associate, Map<Integer, List<Object>> associateMap, boolean enableSmart) {
+        List<Associates> associates = associate.getAssociates();
+        if (enableSmart == false) {
+            AtomicInteger index = new AtomicInteger(0);
+            records.forEach(item -> {
+                associates.forEach(each -> {
+                    QueryWrapper<Object> wrapper = new QueryWrapper<>();
+                    List<AssociateFields> fields = each.getAssociateFields();
+                    if (fields == null || fields.size() <= 0) {
                         return;
                     }
-                    if(targetField==null){
-                        finalResult = result.get(0);
-                    }else{
-                        finalResult = objectToMap(result.get(0)).get(targetField);
+                    for (int i = 0; i < fields.size(); i++) {
+                        AssociateFields one = fields.get(i);
+                        Object fieldValue = getFieldValue(item, one.getCurrentField());
+                        wrapper.eq(one.getTargetField(), fieldValue);
                     }
-                    if(true){
+                    List result = each.getTargetService().list(wrapper);
+                    wrapperAssociateResult(item, each, result, associateMap, index.intValue());
+                });
+                index.incrementAndGet();
+            });
+        } else {
+//          启用智能查询
+            List<Map<String, Map<String, Object>>> listOr = new ArrayList<>();
+//          封装多个查询条件
+            records.forEach(item -> {
+                Map<String, Map<String, Object>> mapAnd = new HashMap<>();
+                associates.forEach(each -> {
+                    List<AssociateFields> fields = each.getAssociateFields();
+                    if (fields == null || fields.size() <= 0) {
+                        return;
+                    }
+                    Map<String, Object> paramAssociateMaps = new HashMap<>();
+                    if (mapAnd.get(each.getId()) != null) {
+                        paramAssociateMaps = mapAnd.get(each.getId());
+                    }
+                    for (int i = 0; i < fields.size(); i++) {
+                        AssociateFields one = fields.get(i);
+//                        wrapper.eq(one.getTargetField(),  getFieldValue(item, one.getCurrentField()));
+                        paramAssociateMaps.put(one.getTargetField(), getFieldValue(item, one.getCurrentField()));
+                    }
+                    mapAnd.put(each.getId(), paramAssociateMaps);
+                });
+                listOr.add(mapAnd);
 
-//                        each.setResult(finalResult);
-                        results.add(finalResult);
-                        if(index!=null){
-                            associateMap.put(index, results);
-                        }
-//                        each.setRecord(item1);
-//                        each.getConsumer().accept(finalResult);
+            });
+
+//          统一查询
+            associates.forEach(each -> {
+                QueryWrapper<Object> wrapper = new QueryWrapper<>();
+                String fieldTargetOne = null;
+                Set<Object> values = new HashSet<>();
+                for (Map<String, Map<String, Object>> item : listOr) {
+                    Map<String, Object> mapAnd = item.get(each.getId());
+
+                    if (mapAnd == null || mapAnd.size() <= 0) {
+                        return;
                     }
-                    if(resultField!=null){
-//                           item.put(resultField, finalResult);
-                        setFieldValue(item,resultField ,finalResult );
+                    if (mapAnd.size() == 1) {
+                        for (Map.Entry<String, Object> entry : mapAnd.entrySet()) {
+                            fieldTargetOne = entry.getKey();
+                            values.add(entry.getValue());
+                        }
+                    } else {
+                        for (Map.Entry<String, Object> entry : mapAnd.entrySet()) {
+                            String fieldTarget = entry.getKey();
+                            Object value = entry.getValue();
+                            if (value == null) {
+//                                wrapper.isNull(fieldTarget);
+                                wrapper.eq(fieldTarget, value);
+                            } else {
+                                wrapper.eq(fieldTarget, value);
+                            }
+                        }
+//                      对于使用多字段关联，使用 or 查询 比 多次查询效率高
+                        wrapper.or();
                     }
                 }
 
+                if (fieldTargetOne != null) {
+//                  对于只有1个字段的关联，使用in查询效率比or查询高
+                    wrapper.in(fieldTargetOne, values);
+                }
+
+
+//              拆解结果
+                List<Object> result = each.getTargetService().list(wrapper);
+                AtomicInteger index = new AtomicInteger(0);
+//              从结果中判断它属于哪一结果
+                records.forEach(item -> {
+                    List<AssociateFields> fields = each.getAssociateFields();
+                    if (fields == null || fields.size() <= 0) {
+                        return;
+                    }
+                    /**
+                     * 拆解 结果与行 对应
+                     */
+                    boolean isSame = true;
+                    for (int i = 0; i < fields.size(); i++) {
+                        AssociateFields one = fields.get(i);
+                        for (Object eve : result) {
+                            Map<String, Object> map = objectToMap(eve);
+                            Object origin = getFieldValue(item, one.getCurrentField());
+                            if (origin == null || !origin.equals(map.get(one.getTargetField()))) {
+                                isSame = false;
+                            }
+                        }
+                    }
+                    if (isSame == true) {
+                        wrapperAssociateResult(item, each, result, associateMap, index.intValue());
+                    }
+                    index.incrementAndGet();
+                });
+
+
+            });
+
+
+        }
+
+
+    }
+
+    /**
+     * 封装结果
+     *
+     * @param item         原结果集每一项
+     * @param each         每个关联
+     * @param result       关联结果
+     * @param associateMap 关联结果封装的映射
+     * @param index        原结果集每一项 索引
+     * @param <T>
+     */
+    private static <T> void wrapperAssociateResult(T item, Associates each, List result, Map<Integer, List<Object>> associateMap, Integer index) {
+        List<Object> results = new ArrayList<>();
+        Object finalResult = null;
+//                  封装结果
+        String resultField = each.getResultField();
+        String targetField = each.getTargetField();
+        if (resultField == null || java.util.List.class == getFieldType(item, resultField)) {
+            /**
+             * 如果对象字段是list，那么直接把结果赋值给他
+             */
+            if (resultField != null) {
+                setFieldValue(item, resultField, result);
+            }
+            /**
+             * 缓存对象
+             */
+            if (true) {
+                results.add(result);
+                if (index != null) {
+                    associateMap.put(index, results);
+                }
+            }
+        } else {
+            /**
+             * 排除空数据
+             */
+            if (result == null || result.size() <= 0) {
+                results.add(null);
+                if (index != null) {
+                    associateMap.put(index, results);
+                }
+                return;
+            }
+            /**
+             * 给对象的某字段 封装结果（不是整个对象就是某个字段）
+             */
+            if (targetField == null) {
+                finalResult = result.get(0);
+            } else {
+                finalResult = objectToMap(result.get(0)).get(targetField);
+            }
+            if (resultField != null) {
+                setFieldValue(item, resultField, finalResult);
             }
 
-        });
-        return item;
-
+            /**
+             * 缓存结果
+             */
+            if (true) {
+                results.add(finalResult);
+                if (index != null) {
+                    associateMap.put(index, results);
+                }
+            }
+        }
     }
 
 
     /**
      * 判断list泛型是否一致
+     *
      * @param
      * @return
      */
-    private static  boolean isListGenericTypeSame(List item1, List item2) {
+    private static boolean isListGenericTypeSame(List item1, List item2) {
         Type type = item1.getClass().getGenericSuperclass();
         Type trueType = ((ParameterizedType) type).getActualTypeArguments()[0];
 
         Type type2 = item2.getClass().getGenericSuperclass();
         Type trueType2 = ((ParameterizedType) type2).getActualTypeArguments()[0];
 
-        if(trueType == trueType2){
+        if (trueType == trueType2) {
             return true;
-        }else{
+        } else {
             return false;
         }
 
     }
 
-    private static  Class getFieldType(Object item, String field) {
-        if(field==null||item==null){
+    private static Class getFieldType(Object item, String field) {
+        if (field == null || item == null) {
             return null;
         }
         try {
             Field f = item.getClass().getDeclaredField(field);
             f.setAccessible(true);
-            return f.getType() ;
-        }catch (Exception e){
+            return f.getType();
+        } catch (Exception e) {
             try {
                 Field f = item.getClass().getSuperclass().getDeclaredField(field);
                 f.setAccessible(true);
                 return f.getType();
-            }catch (Exception e1){
+            } catch (Exception e1) {
                 e.printStackTrace();
                 e1.printStackTrace();
             }
@@ -369,13 +652,13 @@ public class WrapperQuery<S1>   {
     }
 
     private static void setFieldValue(Object item, String field, Object result) {
-       try {
-           Field f = item.getClass().getDeclaredField(field);
+        try {
+            Field f = item.getClass().getDeclaredField(field);
 
 //         集合的话判断类型是否一致
-           if(java.util.List.class == f.getType()){
+            if (java.util.List.class == f.getType()) {
 //               Type genericType = f.getGenericType();
-               // 如果是泛型参数的类型
+                // 如果是泛型参数的类型
 //               if(genericType instanceof ParameterizedType){
 //                   ParameterizedType pt = (ParameterizedType) genericType;
 //                   //得到泛型里的class类型对象
@@ -393,22 +676,22 @@ public class WrapperQuery<S1>   {
 //                   Class<?> genericClazz1 = (Class<?>)pt1.getActualTypeArguments()[0];
 //                   System.out.println(genericClazz1);
 //               }
-           }
+            }
 
-           f.setAccessible(true);
-           f.set(item, result);
-       }catch (Exception e){
+            f.setAccessible(true);
+            f.set(item, result);
+        } catch (Exception e) {
 
-           try {
-               Field f = item.getClass().getSuperclass().getDeclaredField(field);
+            try {
+                Field f = item.getClass().getSuperclass().getDeclaredField(field);
 
-               f.setAccessible(true);
-               f.set(item, result);
-           }catch (Exception e1){
-               e.printStackTrace();
-               e1.printStackTrace();
-           }
-       }
+                f.setAccessible(true);
+                f.set(item, result);
+            } catch (Exception e1) {
+                e.printStackTrace();
+                e1.printStackTrace();
+            }
+        }
 
     }
 
@@ -427,7 +710,7 @@ public class WrapperQuery<S1>   {
                 Field f = entity.getClass().getSuperclass().getDeclaredField(field);
                 f.setAccessible(true);
                 r = f.get(entity);
-            }catch (Exception e1){
+            } catch (Exception e1) {
                 e1.printStackTrace();
                 e.printStackTrace();
             }
@@ -436,92 +719,99 @@ public class WrapperQuery<S1>   {
     }
 
 
-
-    public static List<String>  fetchWord(Object str){
-                                if(str instanceof  String){
-                                List<String> strs = new ArrayList<String>();
-                                    Pattern p = Pattern.compile("[a-zA-Z0-9\\u4e00-\\u9fa5]+");
-                                    Matcher m = p.matcher((String)str);
-                                    while(m.find()) {
-                                    strs.add(m.group());
-                                    }
-                                    return strs;
-                                    }
-                                    return (List<String>) str;
-                                        }
-
+    public static List<String> fetchWord(Object str) {
+        if (str instanceof String) {
+            List<String> strs = new ArrayList<String>();
+            Pattern p = Pattern.compile("[a-zA-Z0-9\\u4e00-\\u9fa5]+");
+            Matcher m = p.matcher((String) str);
+            while (m.find()) {
+                strs.add(m.group());
+            }
+            return strs;
+        }
+        return (List<String>) str;
+    }
 
 
+    private static Field[] getAllDeclaredFields(Class<?> clazz) {
 
-                                        private static Field[] getAllDeclaredFields(Class<?> clazz) {
-
-                                            List<Field> fieldList = new ArrayList<>();
-                                            //      最多只遍历2层
-                                            int i=0;
-                                            while (clazz != null&&i<2){
-                                               fieldList.addAll(new ArrayList<>(Arrays.asList(clazz.getDeclaredFields())));
-                                                clazz = clazz.getSuperclass();
-                                                i++;
-                                            }
-                                            Field[] fields = new Field[fieldList.size()];
-                                            return fieldList.toArray(fields);
-                                            }
-
+        List<Field> fieldList = new ArrayList<>();
+        //      最多只遍历2层
+        int i = 0;
+        while (clazz != null && i < 2) {
+            fieldList.addAll(new ArrayList<>(Arrays.asList(clazz.getDeclaredFields())));
+            clazz = clazz.getSuperclass();
+            i++;
+        }
+        Field[] fields = new Field[fieldList.size()];
+        return fieldList.toArray(fields);
+    }
 
 
-      public static void main(String[] args){
+    public static void main(String[] args) {
 
-      }
-
-
+    }
 
 
-    Associates associates ;
-    public <T1,T2> WrapperQuery add(  Fields.SFunction<T1, ?>  currentField,Fields.SFunction<T2, ?>  targetField ) {
+    Associates associates;
+
+    public <T1, T2> WrapperQuery<S1> add(Fields.SFunction<T1, ?> currentField, Fields.SFunction<T2, ?> targetField) {
         this.associates = associates.add(Fields.name(currentField), Fields.name(targetField));
         return this;
     }
 
-    public <T>  WrapperQuery associate(Fields.SFunction<T , ?> resultField, IService targetService) {
-        if(associates == null){
-            associates=Associates.build();
+
+    public <T> WrapperQuery<S1> associate(Fields.SFunction<T, ?> resultField, IService targetService) {
+        if (associates == null) {
+            associates = Associates.build();
         }
         this.associates = associates.associate(resultField, targetService);
         return this;
     }
 
 
-    public <T,T3>  WrapperQuery associate(Fields.SFunction<T , ?> resultField, IService targetService,Fields.SFunction<T3 , ?> targetField) {
-        if(associates == null){
-            associates=Associates.build();
+    public <T, T3> WrapperQuery<S1> associate(Fields.SFunction<T, ?> resultField, IService targetService, Fields.SFunction<T3, ?> targetField) {
+        if (associates == null) {
+            associates = Associates.build();
         }
-        this.associates=associates.associate(resultField,targetService,targetField );
+        this.associates = associates.associate(resultField, targetService, targetField);
         return this;
     }
 
 
-
-
-    public <T,T3>  WrapperQuery associate( IService targetService,Fields.SFunction<T3 , ?> targetField) {
-        if(associates == null){
-            associates=Associates.build();
+    public <T, T3> WrapperQuery<S1> associate(IService targetService, Fields.SFunction<T3, ?> targetField) {
+        if (associates == null) {
+            associates = Associates.build();
         }
-        this.associates=associates.associate( targetService,targetField );
+        this.associates = associates.associate(targetService, targetField);
         return this;
     }
 
 
-    public <T,T3>  WrapperQuery associate( IService targetService ) {
-        if(associates == null){
-            associates=Associates.build();
+    public <T, T3> WrapperQuery<S1> associate(IService targetService) {
+        if (associates == null) {
+            associates = Associates.build();
         }
-        this.associates=associates.associate( targetService);
+        this.associates = associates.associate(targetService);
         return this;
 
     }
 
 
+    public WrapperQuery<S1> fetch(boolean enableSmart) {
+        Map<Integer, List<Object>> map = new HashMap<>();
+        List<S1> records = this.iPage.getRecords();
+        associateWrapper(records, this.associates, map, enableSmart);
+        this.associateMap = map;
+        return this;
+    }
 
-
-
+    /**
+     * 开始关联查询
+     *
+     * @return
+     */
+    public WrapperQuery<S1> fetch() {
+        return this.fetch(true);
+    }
 }
