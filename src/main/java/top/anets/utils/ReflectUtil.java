@@ -1,15 +1,15 @@
 package top.anets.utils;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import io.swagger.models.auth.In;
 import top.anets.modules.serviceMonitor.server.Sys;
 import top.anets.modules.system.entity.Dict;
 import top.anets.modules.system.entity.SysMenu;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author ftm
@@ -149,9 +149,92 @@ public class ReflectUtil {
     }
 
 
+    /**
+     * 根据类路径获取类
+     * @param args
+     */
+    public static Class<?> getClazz(String clazzName){
+        try {
+            return Class.forName(clazzName);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
-    public static void main(String[] args){
+
+    /**
+     * 获取继承父类的泛型Class对象
+     * @Description: abstTypeTest
+     */
+    public static Class getAbstActualType(Class objClass)
+    {
+        // 获取实例对象的抽象父类
+        Type superclass = objClass.getGenericSuperclass();
+        // 转化抽象父类为参数类
+        ParameterizedType pType=(ParameterizedType) superclass;
+        // 获取参数类的泛型类型数组
+        Type[] types = pType.getActualTypeArguments();
+        // 因为我们抽象类中泛型参数只有一个,所以泛型类型数组第一个就是我们的泛型类型,Class是Type的子类
+        Class clazz=(Class) types[0];
+        return clazz;
+    }
+
+    /**
+     * 获取接口父类的泛型对象
+     * @Description: interTypeTest
+     */
+    public static Class getInterActualType(Class objClass)
+    {
+        // 获取实例对象父接口
+        Type[] interTypes = objClass.getGenericInterfaces();
+        // 转化抽象父类为参数类,因为这里我们只有一个父接口,所以下表0位我们需要的
+        ParameterizedType pType=(ParameterizedType) interTypes[0];
+        // 获取父接口的参数类型数组
+        Type[] types = pType.getActualTypeArguments();
+        // 因为我们父接口中泛型参数只有一个,所以泛型类型数组第一个就是我们的泛型类型,Class是Type的子类
+        Class clazz=(Class) types[0];
+        return clazz;
+    }
+
+
+
+
+    public static void main(String[] args) throws IllegalAccessException, InstantiationException {
         System.out.println(UUID.randomUUID());
+        Class<?> clazz = getClazz("top.anets.modules.system.mapper.DictMapper");
+        Class<?> classT = getInterActualType(clazz);
+        System.out.println(classT);
+        Field[] fields = classT.getDeclaredFields();
+        for(Field fie : fields){
+            if(!fie.isAccessible()){
+                fie.setAccessible(true);
+            }
+            TableField annotation = fie.getAnnotation(TableField.class);
+            if(annotation!=null){
+                System.out.println(annotation.value());
+            }
+        }
+
+//
+//        String str ="The error may involve com.ruoyi.module.sys.mapper.OrganinfoMapper.updateById-Inline";
+//        Pattern pattern = Pattern.compile("(The error may involve )(.*)(Mapper.updateById-Inline)");
+//        Matcher matcher = pattern.matcher(str);
+//        while (matcher.find()) {
+//            System.out.println(matcher.group());
+//            System.out.println(matcher.group(0));
+//            System.out.println(matcher.group(1));
+//            System.out.println(matcher.group(2));
+//        }
+//        String error ="org.springframework.dao.DataIntegrityViolationException: \n" +
+//                "### Error updating database.  Cause: com.mysql.cj.jdbc.exceptions.MysqlDataTruncation: Data truncation: Data too long for column 'Description' at row 1\n" +
+//                "### The error may exist in com/ruoyi/module/sys/mapper/OrganinfoMapper.java (best guess)\n" +
+//                "### The error may involve com.ruoyi.module.sys.mapper.OrganinfoMapper.updateById-Inline\n" +
+//                "### The error occurred while setting parameters";
+//        List<String> strByLikeMatch = RegexUtil.findStrByLikeMatch("The error may involve ", "Mapper", error);
+//        strByLikeMatch.forEach(item->{
+//            System.out.println(item);
+//        });
 
     }
 }

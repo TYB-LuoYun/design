@@ -33,6 +33,7 @@ public class Dict implements Serializable {
     private String name;
 
     @ApiModelProperty(value = "描述")
+    @TableField("description")
     private String description;
 
     @ApiModelProperty(value = "字典码")

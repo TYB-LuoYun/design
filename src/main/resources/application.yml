@@ -31,6 +31,9 @@ spring:
     username: root
     password: tyb
 
+  rabbitmq:
+    enable: false
+
 
 mybatis-plus:
   type-aliases-package: top.anets.modules.**.entity
@@ -38,7 +41,7 @@ mybatis-plus:
   mapper-locations: classpath*:top/anets/modules/**/mapper/**/*.xml
 
 file:
-  ROOT_PATH:
+  ROOT_PATH: C:\Users\Administrator\Desktop\temp\imgs
 
 
 #日志

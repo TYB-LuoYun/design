@@ -19,6 +19,16 @@ public class AESUtil {
     private static final String AEP = "AES/CBC/PKCS5Padding";
 
 
+    private static final String DefaultAseIv ="asdef@edsfrIV999";
+    private static final String DefaultAseKey = "asdef@edsfrI1399";
+
+    public static String decryptAES(String content ) {
+        return decryptAES(content, DefaultAseKey, DefaultAseIv);
+    }
+
+    public static String encryptAES(String content ) {
+         return encryptAES(content, DefaultAseKey, DefaultAseIv);
+    }
 
 
     public static String decryptAES(String content,String aseKey ,String aseIv) {

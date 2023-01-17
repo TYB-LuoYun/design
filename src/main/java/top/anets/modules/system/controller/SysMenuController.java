@@ -1,7 +1,10 @@
 package top.anets.modules.system.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.springframework.web.bind.annotation.*;
 import top.anets.base.*;
+import top.anets.modules.serviceMonitor.server.Sys;
 import top.anets.modules.system.entity.Dict;
 import top.anets.modules.system.service.IDictService;
 import top.anets.modules.system.service.ISysMenuService;
@@ -14,16 +17,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 
+import java.io.Serializable;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import javax.annotation.Resource;
 import org.springframework.web.bind.annotation.RestController;
+import top.anets.modules.threads.ThreadPool.ThreadPoolUtils;
+import top.anets.utils.ListUtil;
 
 /**
  * <p>
@@ -36,7 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Api(tags = {"菜单信息表"})
 @RestController
 @RequestMapping("/sys-menu")
-public class SysMenuController  {
+public class SysMenuController  extends BaseController<SysMenu>{
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -46,6 +56,12 @@ public class SysMenuController  {
 
     @Resource
     private IDictService dictService;
+
+    @ApiOperation(value = "Id查询",notes = "公用方法")
+    @RequestMapping("/detail/{id}")
+    public SysMenu findById(@PathVariable Serializable id){
+        return sysMenuService.getById(  id);
+    }
 
 
 
@@ -64,26 +80,6 @@ public class SysMenuController  {
 
 
 
-    @ApiOperation(value = "删除")
-    @RequestMapping("deletes")
-    public void deletes(String... ids){
-         sysMenuService.removeByIds(Arrays.asList(ids));
-    }
-
-    @ApiOperation(value = "Id查询")
-    @GetMapping("/detail/{id}")
-    public SysMenu findById(@PathVariable Long id){
-        return sysMenuService.findById(id);
-    }
-
-
-
-
-    @ApiOperation(value = "查询-分页-查询和返回不处理")
-    @RequestMapping("pages")
-    public IPage pages(@RequestParam(required = false)  Map<String,Object> params, PageQuery query){
-        return sysMenuService.pages(WrapperQuery.query(params), query.Page());
-    }
 
 
     @ApiOperation(value = "查询-分页-查询和返回新增字段或特殊处理")
@@ -92,11 +88,9 @@ public class SysMenuController  {
         long start = System.currentTimeMillis();
         IPage  pages = sysMenuService.pages(WrapperQuery.query(sysMenuVo), query.Page());
         WrapperQuery.wpage(pages,SysMenuVo.class)
-                .associate(dictService).add(SysMenu::getCode, Dict::getDescription).add(SysMenu::getId, Dict::getId)
-                .fetch()
-                .<List<Dict>>forEach((item,dicts)->{
-                    item.setAssociate(dicts);
-                 });
+                .associate(SysMenuVo::getAssociate,dictService).add(SysMenu::getCode, Dict::getDescription).add(SysMenu::getId, Dict::getId)
+                .fetch(SysMenu::getCode)
+                ;
         long end = System.currentTimeMillis();
         System.out.println("消耗时间:"+(end-start));
         return pages;
@@ -107,7 +101,8 @@ public class SysMenuController  {
     @RequestMapping("lists1")
     public IPage lists1(  SysMenuVo sysMenuVo, PageQuery query){
         long start = System.currentTimeMillis();
-        IPage  pages = sysMenuService.pages(WrapperQuery.query(sysMenuVo), query.Page());
+        QueryWrapper query1 = WrapperQuery.query(sysMenuVo);
+        IPage  pages = sysMenuService.pages(query1, query.Page());
         WrapperQuery.wpage(pages,SysMenuVo.class)
                 .associate(dictService).add(SysMenu::getCode, Dict::getDescription).add(SysMenu::getId, Dict::getId)
                 .fetch(false)
@@ -119,7 +114,42 @@ public class SysMenuController  {
         return pages;
     }
 
-   
+
+
+
+    @ApiOperation(value = "查询-分页-查询和返回新增字段或特殊处理")
+    @RequestMapping("fake")
+    public void test() throws ExecutionException, InterruptedException {
+        long start = System.currentTimeMillis();
+        List<Dict> objects = new ArrayList<>();
+        for(int i=0;i<5000000;i++){
+            Dict dict = new Dict();
+            dict.setAttr1(i+"");
+            dict.setDeleted(1);
+            dict.setCode("code"+i);
+            dict.setName("name"+i);
+            objects.add(dict);
+        }
+        List<List<Dict>> lists = ListUtil.pagingList(objects, 10000);
+        ArrayList<Future<Integer>>  futures = new ArrayList<>();
+        for (int i=0;i<lists.size();i++) {
+            List<Dict> item = lists.get(i);
+            Future<Integer> submit = ThreadPoolUtils.submit(new Callable<Integer>() {
+                @Override
+                public Integer call() {
+                    System.out.println("保存中："+item.size());
+                    dictService.saveBatch(item);
+                    System.out.println("成功保存："+item.size());
+                    return null;
+                }
+            });
+            futures.add(submit);
+        }
+        for (int i=0;i<lists.size();i++) {
+            futures.get(i).get();
+        }
+        System.out.println("全部保存完毕");
+    }
 
 
 
@@ -131,11 +161,26 @@ public class SysMenuController  {
         return sysMenuService.pagesAssociate(params, query.Page());
     }
 
+
+    @ApiOperation(value = "getOne")
+    @GetMapping("getOne")
+    public Dict getOne( ){
+        Dict one = dictService.getOne(new QueryWrapper<>(), false);
+        return one;
+    }
+
+
+    @ApiOperation(value = "getOne1")
+    @GetMapping("getOne1")
+    public Dict getOne1( ){
+        Dict dict = WrapperQuery.queryOne(dictService, Wrappers.<Dict>lambdaQuery().eq(Dict::getDeleted, "1"));
+        return dict;
+    }
+
     public static void  main(String[] args){
         Dict dict = new Dict();
         Object o =  (Object) dict;
         Class<?> aClass = o.getClass();
-
 
     }
 

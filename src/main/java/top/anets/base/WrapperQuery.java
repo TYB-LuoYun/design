@@ -1,11 +1,20 @@
 package top.anets.base;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
+import top.anets.modules.system.entity.Dict;
+import top.anets.modules.system.entity.SysMenu;
+import top.anets.modules.system.service.IDictService;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -20,10 +29,10 @@ import java.util.regex.Pattern;
  */
 @Data
 public class WrapperQuery<S1> {
-    private static List<String> Exclude = Arrays.asList("current", "size", "total", "serialVersionUID");
+    private static List<String> Exclude = Arrays.asList("current", "size", "total", "serialVersionUID","serial_version_u_i_d");
     private static String TimeFormat = "yyyy-MM-dd HH:mm:ss";
     public static QueryWrapper query(Object vo) {
-        return query(objectToMap(vo));
+        return query(objectToColumnMap(vo));
     }
     public static QueryWrapper query(Map<String, Object> map) {
         if (map == null) {
@@ -39,7 +48,11 @@ public class WrapperQuery<S1> {
                 return;
             }
             String column = "";
-            if (key.contains("$like")) {
+            if(key.contains("$in")){
+                column=key.replace("$in", "");
+                List<String> strs = fetchWord((String)map.get(key));
+                wrapper.in(column,strs);
+            }else if (key.contains("$like")) {
                 column = key.replace("$like", "");
                 wrapper.like(column, map.get(key));
             } else if (key.contains("$lt")) {
@@ -125,6 +138,79 @@ public class WrapperQuery<S1> {
 
 
 
+    public static Map<String, Object> objectToColumnMap(Object obj){
+        if (obj == null) {
+            return null;
+        }
+        Map<String, Object> map = new HashMap<String, Object>();
+        Field[] declaredFields = getAllDeclaredFields(obj.getClass());
+        for (Field field : declaredFields) {
+            field.setAccessible(true);
+            try {
+                TableField annotation = field.getAnnotation(TableField.class);
+                if(annotation!=null){
+                    map.put(annotation.value(), field.get(obj));
+                }else{
+                    map.put(upperCharToUnderLine(field.getName()), field.get(obj));
+                }
+
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return map;
+    }
+
+
+
+
+    public static String upperCharToUnderLine(String param) {
+        Pattern p = Pattern.compile("[A-Z]");
+        if (param == null || param.equals("")) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder(param);
+        Matcher mc = p.matcher(param);
+        int i = 0;
+        while (mc.find()) {
+            builder.replace(mc.start() + i, mc.end() + i, "_" + mc.group().toLowerCase());
+            i++;
+        }
+
+        if ('_' == builder.charAt(0)) {
+            builder.deleteCharAt(0);
+        }
+        return builder.toString();
+    }
+
+
+    public static String underline2Camel(String line, boolean... smallCamel) {
+        if (org.apache.commons.lang3.StringUtils.isBlank(line)) {
+            return "";
+        }
+        StringBuffer sb = new StringBuffer();
+        Pattern pattern = Pattern.compile("([A-Za-z\\d]+)(_)?");
+        Matcher matcher = pattern.matcher(line);
+        // 匹配正则表达式
+        while (matcher.find()) {
+            String word = matcher.group();
+            // 当是true 或则是空的情况
+            if ((smallCamel.length == 0 || smallCamel[0]) && matcher.start() == 0) {
+                sb.append(Character.toLowerCase(word.charAt(0)));
+            } else {
+                sb.append(Character.toUpperCase(word.charAt(0)));
+            }
+
+            int index = word.lastIndexOf('_');
+            if (index > 0) {
+                sb.append(word.substring(1, index).toLowerCase());
+            } else {
+                sb.append(word.substring(1).toLowerCase());
+            }
+        }
+        return sb.toString();
+    }
+
     //java对象转map
     public static Map<String, Object> objectToMap(Object obj) {
         if (obj == null) {
@@ -142,6 +228,23 @@ public class WrapperQuery<S1> {
         }
         return map;
     }
+
+
+    //java对象转map
+    public static Map<String, Object> objectToMap(Object... objs) {
+        if(objs == null||objs.length<=0){
+            return null;
+        }
+        Map<String, Object> mapAll = new HashMap<>();
+        for(int i=0;i<objs.length;i++){
+            Map<String, Object> map = objectToMap(objs[i]);
+            if(map!=null){
+                mapAll.putAll(map);
+            }
+        }
+        return mapAll;
+    }
+
 
 
     public static <T> T map2Obj(Map<String, Object> map, Class<T> clz) {
@@ -195,6 +298,43 @@ public class WrapperQuery<S1> {
         WrapperQuery<T> wrapperQuery = new WrapperQuery();
         wrapperQuery.setIPage(pages);
         return wrapperQuery;
+    }
+
+    public static <T> List<T>  query(IService iService, Wrapper<T> queryWrapper){
+        return  iService.list(queryWrapper);
+    }
+
+    public static <T> IPage<T>  queryPage(IService iService, Wrapper<T> queryWrapper,IPage iPage){
+        return  iService.page(iPage,queryWrapper );
+    }
+
+    public static <T> T queryOne(IService iService, Wrapper<T> queryWrapper){
+        return  queryOne(iService,queryWrapper ,false );
+    }
+
+    public static <T> T queryOne(IService iService, Wrapper queryWrapper, boolean throwEx) {
+        if(queryWrapper== null){
+            queryWrapper = new QueryWrapper();
+        }
+        if(throwEx == true){
+            List<T> list = iService.list(queryWrapper);
+            if(list==null||list.size()==0){
+                return null;
+            }
+            if(list.size()>1){
+                throw new RuntimeException("get too many results:"+list.size());
+            }
+            return list.get(0);
+        }else{
+//          单个查询避免全表扫描，采用分页，此分页不用计算总数
+            Page ipage = new Page<>(1, 1);
+            ipage.setSearchCount(false);
+            IPage<T> page = iService.page(ipage, queryWrapper);
+            if(page.getRecords()==null||page.getRecords().size()<=0){
+                return null;
+            }
+            return page.getRecords().get(0);
+        }
     }
 
 
@@ -413,12 +553,16 @@ public class WrapperQuery<S1> {
      * 因为一条语句 也就意味着只对该表中的数据执行一次从头到尾的查询
      * 三条语句的话，要对该表数据执行三次查询
      *
+     *
+     * 3in和or 不会破坏索引（百万测试），in比 union all效率高
+     *
+     * 4在查询1条的时候，
      * @param associate
      * @param associateMap
      * @param <T>
      */
 
-    private static <T> void associateWrapper(List<T> records, Associates associate, Map<Integer, List<Object>> associateMap, boolean enableSmart) {
+    private static <T> void associateWrapper(List<T> records, Associates associate, Map<Integer, List<Object>> associateMap, boolean enableSmart,List<String> limitFields) {
         List<Associates> associates = associate.getAssociates();
         if (enableSmart == false) {
             AtomicInteger index = new AtomicInteger(0);
@@ -434,7 +578,7 @@ public class WrapperQuery<S1> {
                         Object fieldValue = getFieldValue(item, one.getCurrentField());
                         wrapper.eq(one.getTargetField(), fieldValue);
                     }
-                    List result = each.getTargetService().list(wrapper);
+                    List result = listQuery(each,wrapper,null);
                     wrapperAssociateResult(item, each, result, associateMap, index.intValue());
                 });
                 index.incrementAndGet();
@@ -442,7 +586,7 @@ public class WrapperQuery<S1> {
         } else {
 //          启用智能查询
             List<Map<String, Map<String, Object>>> listOr = new ArrayList<>();
-//          封装多个查询条件
+////          封装多个查询条件
             records.forEach(item -> {
                 Map<String, Map<String, Object>> mapAnd = new HashMap<>();
                 associates.forEach(each -> {
@@ -504,7 +648,8 @@ public class WrapperQuery<S1> {
 
 
 //              拆解结果
-                List<Object> result = each.getTargetService().list(wrapper);
+                List<Object> result = listQuery(each,wrapper,limitFields);
+
                 AtomicInteger index = new AtomicInteger(0);
 //              从结果中判断它属于哪一结果
                 records.forEach(item -> {
@@ -539,6 +684,36 @@ public class WrapperQuery<S1> {
         }
 
 
+    }
+
+    private static List  listQuery(Associates each, QueryWrapper<Object> wrapper,  List<String> limitFields) {
+        if(CollectionUtils.isNotEmpty(limitFields)){
+//        指定查询字段
+            List<AssociateFields> fields = each.getAssociateFields();
+            List<String> strings = new ArrayList<>();
+            if(fields!=null){
+                fields.forEach(item->{
+                    String targetField = item.getTargetField();
+                    if(StringUtils.isNotBlank(targetField)){
+                        strings.add(targetField);
+                    }
+                });
+            }
+            strings.addAll( limitFields);
+            String[] objects =  strings.toArray(new String[limitFields.size()]);
+            wrapper.select(objects);
+        }
+        List result = null;
+        if(each.getIsOne()==null||each.getIsOne() == false){
+            result = each.getTargetService().list(wrapper);
+        }else{
+//          单个查询，避免全表扫描
+            Page ipage = new Page<>(1, 1);
+            ipage.setSearchCount(false);
+            IPage page = each.getTargetService().page(ipage, wrapper);
+            result = page.getRecords();
+        }
+        return result;
     }
 
     /**
@@ -722,7 +897,7 @@ public class WrapperQuery<S1> {
     public static List<String> fetchWord(Object str) {
         if (str instanceof String) {
             List<String> strs = new ArrayList<String>();
-            Pattern p = Pattern.compile("[a-zA-Z0-9\\u4e00-\\u9fa5]+");
+            Pattern p = Pattern.compile("[_a-zA-Z0-9\\u4e00-\\u9fa5]+");
             Matcher m = p.matcher((String) str);
             while (m.find()) {
                 strs.add(m.group());
@@ -748,9 +923,7 @@ public class WrapperQuery<S1> {
     }
 
 
-    public static void main(String[] args) {
 
-    }
 
 
     Associates associates;
@@ -765,7 +938,7 @@ public class WrapperQuery<S1> {
         if (associates == null) {
             associates = Associates.build();
         }
-        this.associates = associates.associate(resultField, targetService);
+        this.associates = associates.associate(resultField, targetService,false);
         return this;
     }
 
@@ -774,7 +947,7 @@ public class WrapperQuery<S1> {
         if (associates == null) {
             associates = Associates.build();
         }
-        this.associates = associates.associate(resultField, targetService, targetField);
+        this.associates = associates.associate(resultField, targetService, targetField,false);
         return this;
     }
 
@@ -783,7 +956,7 @@ public class WrapperQuery<S1> {
         if (associates == null) {
             associates = Associates.build();
         }
-        this.associates = associates.associate(targetService, targetField);
+        this.associates = associates.associate(targetService, targetField,false);
         return this;
     }
 
@@ -792,7 +965,46 @@ public class WrapperQuery<S1> {
         if (associates == null) {
             associates = Associates.build();
         }
-        this.associates = associates.associate(targetService);
+        this.associates = associates.associate(targetService,false);
+        return this;
+
+    }
+
+
+
+//    关联一个
+    public <T> WrapperQuery<S1> associateOne(Fields.SFunction<T, ?> resultField, IService targetService) {
+    if (associates == null) {
+        associates = Associates.build();
+    }
+    this.associates = associates.associateOne(resultField, targetService);
+    return this;
+}
+
+
+    public <T, T3> WrapperQuery<S1> associateOne(Fields.SFunction<T, ?> resultField, IService targetService, Fields.SFunction<T3, ?> targetField) {
+        if (associates == null) {
+            associates = Associates.build();
+        }
+        this.associates = associates.associateOne(resultField, targetService, targetField);
+        return this;
+    }
+
+
+    public <T, T3> WrapperQuery<S1> associateOne(IService targetService, Fields.SFunction<T3, ?> targetField) {
+        if (associates == null) {
+            associates = Associates.build();
+        }
+        this.associates = associates.associateOne(targetService, targetField);
+        return this;
+    }
+
+
+    public <T, T3> WrapperQuery<S1> associateOne(IService targetService) {
+        if (associates == null) {
+            associates = Associates.build();
+        }
+        this.associates = associates.associateOne(targetService);
         return this;
 
     }
@@ -801,7 +1013,7 @@ public class WrapperQuery<S1> {
     public WrapperQuery<S1> fetch(boolean enableSmart) {
         Map<Integer, List<Object>> map = new HashMap<>();
         List<S1> records = this.iPage.getRecords();
-        associateWrapper(records, this.associates, map, enableSmart);
+        associateWrapper(records, this.associates, map, enableSmart,null);
         this.associateMap = map;
         return this;
     }
@@ -813,5 +1025,26 @@ public class WrapperQuery<S1> {
      */
     public WrapperQuery<S1> fetch() {
         return this.fetch(true);
+    }
+
+    /**
+     * 指定字段关联查询
+     */
+    public <T2> WrapperQuery<S1> fetch(Fields.SFunction<T2, ?>... limitFields) {
+        Map<Integer, List<Object>> map = new HashMap<>();
+        List<S1> records = this.iPage.getRecords();
+        List<Fields.SFunction<T2, ?>> sFunctions = null;
+        if(limitFields!=null){
+            sFunctions =  Arrays.asList(limitFields);
+        }
+        List<String> strings = new ArrayList<>();
+        if(sFunctions!=null){
+            sFunctions.forEach(each->{
+                strings.add(Fields.name(each));
+            });
+        }
+        associateWrapper(records, this.associates, map, true,strings);
+        this.associateMap = map;
+        return this;
     }
 }

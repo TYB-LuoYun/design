@@ -19,5 +19,7 @@ public class  SysMenuVo extends SysMenu{
     private List<Dict> associate5;
     private Dict associate6;
 
+    private String parentId$like;
+
 
 }

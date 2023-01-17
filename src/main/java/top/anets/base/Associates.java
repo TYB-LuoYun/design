@@ -48,6 +48,12 @@ public class Associates  {
      */
     private Boolean custom ;
 
+    /**
+     * 是否只查一个
+     * @return
+     */
+    private Boolean isOne =false;
+
 
     public static Associates build() {
         return new Associates();
@@ -87,7 +93,8 @@ public class Associates  {
         return this;
     }
 
-    public <T>  Associates associate(Fields.SFunction<T , ?> resultField, IService targetService) {
+    public <T>  Associates associate(Fields.SFunction<T , ?> resultField, IService targetService,boolean isOne) {
+
         String id = UUID.randomUUID().toString();
         Associates associate = new Associates();
         associate.setResultField(Fields.name(resultField));
@@ -96,6 +103,8 @@ public class Associates  {
         if(associates==null){
             associates = new ArrayList<>();
         }
+        associate.setIsOne(isOne);
+        this.setIsOne(isOne);
         this.associates.add(associate);
         this.setResultField(Fields.name(resultField));
         this.setTargetService(targetService);
@@ -104,7 +113,7 @@ public class Associates  {
     }
 
 
-    public <T,T3>  Associates associate(Fields.SFunction<T , ?> resultField, IService targetService,Fields.SFunction<T3 , ?> targetField) {
+    public <T,T3>  Associates associate(Fields.SFunction<T , ?> resultField, IService targetService,Fields.SFunction<T3 , ?> targetField,boolean isOne) {
         String id = UUID.randomUUID().toString();
         Associates associate = new Associates();
         associate.setResultField(Fields.name(resultField));
@@ -114,6 +123,8 @@ public class Associates  {
         if(associates==null){
             associates = new ArrayList<>();
         }
+        associate.setIsOne(isOne);
+        this.setIsOne(isOne);
         this.associates.add(associate);
         this.setResultField(Fields.name(resultField));
         this.setTargetService(targetService);
@@ -125,7 +136,7 @@ public class Associates  {
 
 
 
-    public <T,T3>  Associates associate( IService targetService,Fields.SFunction<T3 , ?> targetField) {
+    public <T,T3>  Associates associate( IService targetService,Fields.SFunction<T3 , ?> targetField,boolean isOne) {
         String id = UUID.randomUUID().toString();
         Associates associate = new Associates();
 //        associate.setResultField(Fields.name(resultField));
@@ -135,6 +146,8 @@ public class Associates  {
         if(associates==null){
             associates = new ArrayList<>();
         }
+        associate.setIsOne(isOne);
+        this.setIsOne(isOne);
         this.associates.add(associate);
 //        this.setResultField(Fields.name(resultField));
         this.setTargetService(targetService);
@@ -144,7 +157,7 @@ public class Associates  {
     }
 
 
-    public <T,T3>  Associates associate( IService targetService ) {
+    public <T,T3>  Associates associate( IService targetService ,boolean isOne) {
         String id = UUID.randomUUID().toString();
         Associates associate = new Associates();
 //        associate.setResultField(Fields.name(resultField));
@@ -155,6 +168,8 @@ public class Associates  {
         if(associates==null){
             associates = new ArrayList<>();
         }
+        associate.setIsOne(isOne);
+        this.setIsOne(isOne);
         this.associates.add(associate);
 //        this.setResultField(Fields.name(resultField));
         this.setTargetService(targetService);
@@ -165,6 +180,29 @@ public class Associates  {
 
 
         return this;
+    }
+
+
+//  关联一个
+public <T>  Associates associateOne(Fields.SFunction<T , ?> resultField, IService targetService) {
+     return  associate(resultField,targetService, true);
+}
+
+
+    public <T,T3>  Associates associateOne(Fields.SFunction<T , ?> resultField, IService targetService,Fields.SFunction<T3 , ?> targetField) {
+        return associate(resultField,targetService,targetField, true);
+    }
+
+
+
+
+    public <T,T3>  Associates associateOne( IService targetService,Fields.SFunction<T3 , ?> targetField) {
+        return associate(targetService,targetField,true );
+    }
+
+
+    public <T,T3>  Associates associateOne( IService targetService ) {
+        return associate(targetService, true );
     }
 
 

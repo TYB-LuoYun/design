@@ -229,7 +229,9 @@
     <!--<logger name="com.ibatis.sqlmap.engine.impl.SqlMapClientDelegate" value="DEBUG" />-->
 
     <!-- 不管root啥级别，强制显示,使用off可以强制直接关闭-->
-    <!--<logger name="com.mtst.mappers" level="DEBUG" />-->
+    <logger name="org.springframework.amqp.rabbit" level="OFF" />
+    <logger name="com.xxl.job.core.util" level="OFF" />
+
     <!-- 单独输出-->
     <logger name="top.anets.modules" level="DEBUG" >
         <appender-ref ref="console"/>

@@ -1,5 +1,6 @@
 package top.anets.modules.system.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 import java.io.Serializable;
@@ -30,6 +31,7 @@ public class SysMenu implements Serializable {
     private String id;
 
     @ApiModelProperty(value = "父菜单 ID (0为顶级菜单)")
+    @TableField("parent_id")
     private String parentId;
 
     @ApiModelProperty(value = "vue菜单名称")

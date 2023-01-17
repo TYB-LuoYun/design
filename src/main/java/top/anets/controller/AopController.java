@@ -38,7 +38,7 @@ public class AopController {
     @ApiOperation(value = "关联查询-分页")
     @RequestMapping("pagesAssociate")
     public IPage pagesAssociate(@RequestParam(required = false) Map<String,Object> params, PageQuery query){
-        System.out.println(params);
+       System.out.println(params);
        return null;
     }
 }
