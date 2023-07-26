@@ -1,11 +1,18 @@
 package top.anets.utils;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
 import io.swagger.models.auth.In;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.type.classreading.MetadataReader;
+import org.springframework.core.type.classreading.SimpleMetadataReaderFactory;
 import top.anets.modules.serviceMonitor.server.Sys;
 import top.anets.modules.system.entity.Dict;
 import top.anets.modules.system.entity.SysMenu;
 
+import java.io.IOException;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -198,6 +205,99 @@ public class ReflectUtil {
     }
 
 
+    public static void setFieldValue(Object object, String fieldName, Object newValue) {
+        try {
+            Field field = object.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            field.set(object,newValue);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+    public static void copyPropertiesToNullFields(Object source, Object target)  {
+        Field[] sourceFields = source.getClass().getDeclaredFields();
+        Field[] targetFields = target.getClass().getDeclaredFields();
+        try {
+            for (Field sourceField : sourceFields) {
+                sourceField.setAccessible(true);
+                Object sourceValue = sourceField.get(source);
+                for (Field targetField : targetFields) {
+                    targetField.setAccessible(true);
+                    if (sourceField.getName().equals(targetField.getName()) && ObjectUtils.isEmpty(targetField.get(target))) {
+                        targetField.set(target, sourceValue);
+                        break;
+                    }
+                }
+            }
+        }catch (Exception e){
+
+        }
+    }
+
+
+    /**
+     * 找com.dicomclub.paysystem.module.**.entity
+     * 包下的所有类
+     * @param packageName
+     * @return
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public static List<Class<?>> find(String packageName) throws IOException, ClassNotFoundException {
+        List<Class<?>> classes = new ArrayList<>();
+        ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        String pattern = "classpath*:/" + packageName.replace('.', '/') + "/*.class";
+        Resource[] resources = resolver.getResources(pattern);
+        SimpleMetadataReaderFactory metadataReaderFactory = new SimpleMetadataReaderFactory();
+        for (Resource resource : resources) {
+            MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(resource);
+            String className = metadataReader.getClassMetadata().getClassName();
+            Class<?> clazz = Class.forName(className);
+            classes.add(clazz);
+        }
+        return classes;
+    }
+
+    public static boolean isCommonType(Object obj) {
+        return isString(obj) ||isPrimitive(obj) ||
+                isWrapperType(obj) ||
+                isDate(obj);
+    }
+
+    public static boolean isPrimitive(Object obj) {
+        return obj instanceof Boolean ||
+                obj instanceof Character ||
+                obj instanceof Byte ||
+                obj instanceof Short ||
+                obj instanceof Integer ||
+                obj instanceof Long ||
+                obj instanceof Float ||
+                obj instanceof Double;
+    }
+
+    public static boolean isWrapperType(Object obj) {
+        return obj instanceof Boolean ||
+                obj instanceof Character ||
+                obj instanceof Byte ||
+                obj instanceof Short ||
+                obj instanceof Integer ||
+                obj instanceof Long ||
+                obj instanceof Float ||
+                obj instanceof Double;
+    }
+
+    public static boolean isString(Object obj) {
+        return obj instanceof String;
+    }
+
+    public static boolean isDate(Object obj) {
+        return obj instanceof Date;
+    }
+
 
 
     public static void main(String[] args) throws IllegalAccessException, InstantiationException {
@@ -227,7 +327,7 @@ public class ReflectUtil {
 //            System.out.println(matcher.group(2));
 //        }
 //        String error ="org.springframework.dao.DataIntegrityViolationException: \n" +
-//                "### Error updating database.  Cause: com.mysql.cj.jdbc.exceptions.MysqlDataTruncation: Data truncation: Data too long for column 'Description' at row 1\n" +
+//                "### Error updating database.  Cause: com.mysql.cj.jdbc.exception.MysqlDataTruncation: Data truncation: Data too long for column 'Description' at row 1\n" +
 //                "### The error may exist in com/ruoyi/module/sys/mapper/OrganinfoMapper.java (best guess)\n" +
 //                "### The error may involve com.ruoyi.module.sys.mapper.OrganinfoMapper.updateById-Inline\n" +
 //                "### The error occurred while setting parameters";

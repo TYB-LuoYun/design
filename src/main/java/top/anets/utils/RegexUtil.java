@@ -1,13 +1,25 @@
 package top.anets.utils;
 
-import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RegexUtil {
+
+
+    /**
+     * 根据根路径和相对路径，拼接正确的URL,去掉重复的/情况
+     * 比如http://127.0.0.1/  和 /get/file 拼接成 http://127.0.0.1//get/file
+     * @param
+     * @return
+     */
+    public static String joinUrl(String baseUrl, String relativeUrl){
+        return (baseUrl+"/"+relativeUrl).replaceAll("((?<!:)/{2,})|(\\\\)", "/") ;
+    }
+
+
+
     public static List<String>  fetchWord(String str){
         List<String> strs = new ArrayList<String>();
         Pattern p = Pattern.compile("\\w+");
@@ -34,10 +46,33 @@ public class RegexUtil {
     }
 
     /**
+     * 查找结尾的字符串
+     * @param startRegex
+     * @param fullText
+     * @return
+     */
+    public static String  findStrByLikeMatchInEnd(String startRegex, String fullText) {
+        List<String> match = findStrByLikeMatch(startRegex, null, fullText);
+        if(match == null){
+            return null;
+        }
+        return match.get(0);
+    }
+
+
+
+
+    /**
      * 知道 目标str的前后，模糊匹配值
      */
     public static List<String> findStrByLikeMatch(String start ,String end ,String fullText){
         try {
+            if(start == null){
+                start = "";
+            }
+            if(end == null){
+                end="";
+            }
             Pattern pattern = Pattern.compile("("+start +")(.*?)("+end +")");
             Matcher matcher = pattern.matcher(fullText);
             ArrayList<String> strings = new ArrayList<>();
@@ -48,6 +83,27 @@ public class RegexUtil {
         }catch (Exception e){
             return null;
         }
+    }
+
+
+    public static String findStrByLikeMatchOne(String start ,String end ,String fullText){
+        try {
+            if(start == null){
+                start = "";
+            }
+            if(end == null){
+                end="";
+            }
+            Pattern pattern = Pattern.compile("("+start +")(.*?)("+end +")");
+            Matcher matcher = pattern.matcher(fullText);
+            ArrayList<String> strings = new ArrayList<>();
+            while (matcher.find()) {
+                return matcher.group(2).trim();
+            }
+        }catch (Exception e){
+
+        }
+        return null;
     }
 
     /**
@@ -66,8 +122,30 @@ public class RegexUtil {
     }
 
     public static void main(String[] args){
-        System.out.println(BigDecimal.valueOf(1).divide(BigDecimal.valueOf(3), 2, BigDecimal.ROUND_HALF_UP).toString());
+        System.out.println("sss   sss".trim());
+        System.out.println(RegexUtil.findStrByLikeMatchOne("", "r$", "role r"));
     }
 
+
+    /**
+     * regexGroup(组1)(组2)
+     * @param fullText
+     * @param regexGroup
+     * @return
+     */
+    public static List<String> groupMatch(String fullText, String regexGroup) {
+        // 匹配数字和 URL 部分
+        Pattern pattern = Pattern.compile(regexGroup);
+        Matcher matcher = pattern.matcher(fullText);
+
+        List<String> list = new ArrayList<>();
+        if (matcher.find()) {
+
+            for(int i=1;i<=matcher.groupCount();i++){
+                list.add(matcher.group(i));
+            }
+        }
+        return list;
+    }
 
 }

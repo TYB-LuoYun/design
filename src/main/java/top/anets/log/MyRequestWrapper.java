@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2022/11/7 0007 18:14
  */
 public class MyRequestWrapper extends HttpServletRequestWrapper {
-    private final String body;
+    private  String body;
     public MyRequestWrapper(HttpServletRequest request) throws IOException {
         super(request);
         this.body = getBodyString(request);
@@ -123,5 +123,10 @@ public class MyRequestWrapper extends HttpServletRequestWrapper {
 
     public String getBody() {
         return body;
+    }
+
+    // 修改body
+    public void setBody(String body) {
+        this.body = body;
     }
 }

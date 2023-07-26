@@ -401,6 +401,8 @@ public class FileClientService {
             fidCid= Type.AUDIO.getDir();
         }else if("doc,excel,ppt,pptx,pdf,chm,txt,md,docx,xls,xlsx,html,css,js,java".indexOf(extName)!=-1){
             fidCid= Type.OTHERS.getDir();
+        }else{
+            fidCid= Type.OTHERS.getDir();
         }
         return fidCid;
     }
@@ -418,6 +420,8 @@ public class FileClientService {
         }else if("mp3,wav,krc,lrc".indexOf(extName)!=-1){
             fidCid= Type.AUDIO.value;
         }else if("doc,excel,ppt,pptx,pdf,chm,txt,md,docx,xls,xlsx,html,css,js,java".indexOf(extName)!=-1){
+            fidCid= Type.OTHERS.value;
+        }else{
             fidCid= Type.OTHERS.value;
         }
         return fidCid;

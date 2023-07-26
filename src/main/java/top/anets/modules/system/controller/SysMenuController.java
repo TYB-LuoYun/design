@@ -1,5 +1,6 @@
 package top.anets.modules.system.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.springframework.web.bind.annotation.*;
@@ -56,6 +57,9 @@ public class SysMenuController  extends BaseController<SysMenu>{
 
     @Resource
     private IDictService dictService;
+
+
+
 
     @ApiOperation(value = "Id查询",notes = "公用方法")
     @RequestMapping("/detail/{id}")
@@ -155,6 +159,28 @@ public class SysMenuController  extends BaseController<SysMenu>{
 
 
 
+
+     @RequestMapping("queryMap")
+     public void queryMap(){
+         QueryMap map1 = new QueryMap();
+         map1.eq(SysMenu::getCode,1 );
+
+
+         QueryMap map = new QueryMap();
+         map.eq(SysMenu::getSort,2 );
+         map.in(SysMenu::getComponent,"2");
+         map.or();
+         map.eq(SysMenu::getJumpUrl,78 );
+
+
+         map1.and(map);
+         QueryWrapper query = WrapperQuery.query(map1);
+         List list = sysMenuService.list(query);
+         System.out.println(list.size());
+     }
+
+
+
     @ApiOperation(value = "关联查询-分页")
     @PostMapping("pagesAssociate")
     public IPage pagesAssociate(@RequestParam(required = false)  Map<String,Object> params, PageQuery query){
@@ -178,9 +204,14 @@ public class SysMenuController  extends BaseController<SysMenu>{
     }
 
     public static void  main(String[] args){
-        Dict dict = new Dict();
-        Object o =  (Object) dict;
-        Class<?> aClass = o.getClass();
+
+        QueryMap map = new QueryMap();
+        map.eq(SysMenu::getCode,1 );
+        map.or();
+        map.eq(SysMenu::getId,2 );
+        QueryWrapper query = WrapperQuery.query(map);
+        System.out.println(query.getCustomSqlSegment());
+        System.out.println(map.size());
 
     }
 

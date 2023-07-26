@@ -39,4 +39,8 @@ public interface IRedisService<T> {
     void deleteSet(String key, T value);
 
     T execute(RedisCallback<T> redisCallback);
+
+    public  boolean tryLock(String key, T value, long expireTime);
+
+    public void unlock(String key, String value);
 }

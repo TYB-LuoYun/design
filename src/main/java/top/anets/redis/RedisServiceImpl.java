@@ -88,4 +88,17 @@ public class RedisServiceImpl<T> implements IRedisService<T> {
     public T execute(RedisCallback<T> redisCallback) {
         return redisTemplate.execute(redisCallback);
     }
+
+    public  boolean tryLock(String key, T value, long expireTime) {
+        Boolean result = redisTemplate.opsForValue().setIfAbsent(key, value, expireTime, TimeUnit.SECONDS);
+        return result != null && result;
+    }
+
+    public void unlock(String key, String value) {
+        Object currentValue = redisTemplate.opsForValue().get(key);
+        if (currentValue != null && currentValue.equals(value)) {
+            redisTemplate.delete(key);
+        }
+    }
+
 }

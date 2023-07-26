@@ -34,6 +34,44 @@ spring:
   rabbitmq:
     enable: false
 
+  data:
+    mongodb:
+      host: 192.168.200.125
+      port: 25002
+      database: DataCenter
+  #      authentication-database: admin
+  #      username: root
+  #      password: Ry@Mysq.2021
+
+
+
+##mongodb数据源, 用户名密码、鉴权这些省略，此处演示不配置
+mongodb:
+  databases:
+    mongodb_1: ##这是我自定义的dbname
+      name: ${mongo.DataCenter.db}
+      uri: mongodb://${mongo.DataCenter.host}:${mongo.DataCenter.port}/${mongo.DataCenter.db}
+      username: ${mongo.DataCenter.username:}
+      password: ${mongo.DataCenter.password:}
+      authenticationDatabase: ${mongo.DataCenter.authenticationDatabase:}
+
+    mongodb_2:
+      name: ${mongo.LogDB.db}
+      uri: mongodb://${mongo.LogDB.host}:${mongo.LogDB.port}/${mongo.LogDB.db}
+      username: ${mongo.LogDB.username:}
+      password: ${mongo.LogDB.password:}
+      authenticationDatabase: ${mongo.LogDB.authenticationDatabase:}
+
+
+mongo:
+  DataCenter:
+    db: DataCenter
+    host: 192.168.200.120
+    port: 27017
+  LogDB:
+    db: LogDB
+    host: 192.168.200.120
+    port: 27017
 
 mybatis-plus:
   type-aliases-package: top.anets.modules.**.entity
@@ -42,7 +80,6 @@ mybatis-plus:
 
 file:
   ROOT_PATH: C:\Users\Administrator\Desktop\temp\imgs
-
 
 #日志
 logging:

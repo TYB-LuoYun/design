@@ -34,7 +34,7 @@ public class FileController {
     }
 
 
-    @RequestMapping("getFileByType")
+    @RequestMapping("getFile")
     @ResponseBody
     void getFileByName(HttpServletRequest request, HttpServletResponse response, String fileName, Integer type) throws Exception {
 //      该资源谁都可以用
@@ -51,7 +51,7 @@ public class FileController {
     }
 
 
-    @RequestMapping(value ="getFile")
+    @RequestMapping(value ="getImage")
     @ResponseBody
     void getFile(HttpServletRequest request, HttpServletResponse response, String relativeFileUrl) throws Exception {
         //      该资源谁都可以用

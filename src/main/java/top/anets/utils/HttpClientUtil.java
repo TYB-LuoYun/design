@@ -1,5 +1,7 @@
 package top.anets.utils;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -18,6 +20,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,6 +50,9 @@ public class HttpClientUtil {
 
 
 	public static String doGet(String url, Map<String, Object> map, String charset, Header[] headers) {
+		if(map!=null&&map.size()>0){
+			url = url+ "?" + mapToUrlStr(map);
+		}
 		url = url+ "?" + mapToUrlStr(map);
 		logeer .info("*****url:  "+url);
 		String result = "";
@@ -164,13 +170,52 @@ public class HttpClientUtil {
 		StringBuilder stringBuilder = new StringBuilder();
 		Set<String> keys = map.keySet();
 		for (String string : keys) {
-			String value = map.get(string).toString();
-			stringBuilder.append("&"+string+"="+value);
+			if ( map.get(string)!=null) {
+				Object value = map.get(string);
+//                if (value.contains("[")) {
+//                    JSONArray array = JSON.parseArray(value);
+//                    array.forEach(index -> {
+//                        stringBuilder.append("&" + string + "[]" + "=" + index);
+//                    });
+//                }
+				if (value instanceof Collection) {
+					Collection array = (Collection) value;
+					array.forEach(index -> {
+						stringBuilder.append("&" + string +  "=" + index);
+					});
+				}else{
+					stringBuilder.append("&" + string + "=" + value);
+				}
+			}
 		}
-		if(stringBuilder.toString().length()>0) {
+		if (stringBuilder.toString().length() > 0) {
 			return stringBuilder.toString().substring(1);
 		}
 		return stringBuilder.toString();
+	}
+
+
+
+	/**
+	 * 判断object是否为基本类型(不为对象)
+	 *
+	 * @param object
+	 * @return
+	 */
+	public static boolean isBaseType(Object object) {
+		Class className = object.getClass();
+		if (className.equals(java.lang.Integer.class) ||
+				className.equals(java.lang.Byte.class) ||
+				className.equals(java.lang.Long.class) ||
+				className.equals(java.lang.Double.class) ||
+				className.equals(java.lang.Float.class) ||
+				className.equals(java.lang.Character.class) ||
+				className.equals(java.lang.String.class) ||
+				className.equals(java.lang.Short.class) ||
+				className.equals(java.lang.Boolean.class)) {
+			return true;
+		}
+		return false;
 	}
 
 	/**

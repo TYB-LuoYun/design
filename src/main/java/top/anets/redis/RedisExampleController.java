@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import top.anets.modules.serviceMonitor.server.Sys;
 import top.anets.temp.IllegalCaseWfxwEnum;
 
 import java.text.SimpleDateFormat;
@@ -31,6 +32,13 @@ public class RedisExampleController {
         redisTemplate.opsForValue().set(key,value);
         String  s = redisService.get(key);
         System.out.println(s);
+    }
+
+    @RequestMapping("lock")
+    public void lock(String value){
+        System.out.println(redisService.getExpire("trty"));
+        boolean trty = redisService.tryLock("trty", value, 30);
+        System.out.println(trty);
     }
      public static void main(String[] args) {
 //         String s = "{\"status\":200,\"errorCode\":\"B0021\",\"errorMsg\":\"未查到数据，请检查参数！\",\"page\":null,\"pageSize\":null,\"count\":null,\"totalCount\":null,\"data\":["

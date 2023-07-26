@@ -56,7 +56,7 @@ public final class Result implements Serializable {
     }
 
     public static Result success(Object data) {
-        
+
         return new Result(true,ResultEnum.SUCCESS.getCode(), ResultEnum.SUCCESS.getDesc(), data);
     }
 

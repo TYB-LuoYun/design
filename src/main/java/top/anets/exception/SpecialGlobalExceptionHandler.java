@@ -1,4 +1,4 @@
-package top.anets.exceptions;
+package top.anets.exception;
 
 /**
  * @author ftm

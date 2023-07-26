@@ -3,9 +3,7 @@ package top.anets.base;
 import com.baomidou.mybatisplus.extension.service.IService;
 import lombok.Data;
 
-import javax.security.auth.callback.CallbackHandler;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -19,8 +17,8 @@ public class Associates  {
     private List<Associates> associates;
 
     /**
-//     * 关联结果
-//     */
+     //     * 关联结果
+     //     */
 //    private Object result;
     /**
      * 结果字段
@@ -183,10 +181,10 @@ public class Associates  {
     }
 
 
-//  关联一个
-public <T>  Associates associateOne(Fields.SFunction<T , ?> resultField, IService targetService) {
-     return  associate(resultField,targetService, true);
-}
+    //  关联一个
+    public <T>  Associates associateOne(Fields.SFunction<T , ?> resultField, IService targetService) {
+        return  associate(resultField,targetService, true);
+    }
 
 
     public <T,T3>  Associates associateOne(Fields.SFunction<T , ?> resultField, IService targetService,Fields.SFunction<T3 , ?> targetField) {

@@ -5,9 +5,14 @@ spring:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848 # 注册中心地址  nacos server
+        enabled: true
       config:
+        shared-configs: application.yml
         server-addr: 127.0.0.1:8848 # 配置中心地址 nacos server
         file-extension: yml # 配置中心的配置后缀
+        #        启动或者关闭nacos
+        enabled: true
+        group: DEFAULT_GROUP
   profiles:
     active: dev # 指定环境为开发环境，即读取 system-server-dev.yml
   boot:

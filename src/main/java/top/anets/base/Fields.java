@@ -3,21 +3,22 @@ package top.anets.base;
 import com.baomidou.mybatisplus.annotation.TableField;
 
 import java.io.Serializable;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+//import org.springframework.data.mongodb.core.mapping.Document;
+
 /**
  * @Author ftm
- * @Date 2022-10-11 12:58:41
+ * @Date 2023-01-30 10:25:18
  * @Description 字段名提取器
  */
-public class Fields   {
+public class Fields {
     /**
      * 使Function获取序列化能力
      */
@@ -74,8 +75,9 @@ public class Fields   {
             String fieldName = serializedLambda.getImplMethodName().substring("get".length());
             fieldName = fieldName.replaceFirst(fieldName.charAt(0) + "", (fieldName.charAt(0) + "").toLowerCase());
             Field field;
+            Class<?> aClass = null;
             try {
-            Class<?> aClass = Class.forName(serializedLambda.getImplClass().replace("/", "."));
+             aClass = Class.forName(serializedLambda.getImplClass().replace("/", "."));
             field = aClass.getDeclaredField(fieldName);
             } catch (ClassNotFoundException | NoSuchFieldException e) {
             fieldName = capital(fieldName);
@@ -90,23 +92,47 @@ public class Fields   {
 
             // 从field取出字段名，可以根据实际情况调整
             TableField tableField = field.getAnnotation(TableField.class);
-            if (tableField != null && tableField.value().length() > 0) {
-            return tableField.value();
-            } else {
+            if (tableField != null && tableField.value().length() > 0  ) {
+                return tableField.value();
+            }
+//            else if(aClass!=null && aClass.getAnnotation(Document.class)!=null){
+//                return fieldName;
+//            }
+            else{
+                return upperCharToUnderLine(fieldName);
+//            //0.不做转换 1.大写 2.小写
+//            switch (toType) {
+//            case 1:
+//            return fieldName.replaceAll("[A-Z]", split + "$0").toUpperCase();
+//            case 2:
+//            return fieldName.replaceAll("[A-Z]", split + "$0").toLowerCase();
+//            default:
+//            return fieldName.replaceAll("[A-Z]", split + "$0");
+//            }
 
-            //0.不做转换 1.大写 2.小写
-            switch (toType) {
-            case 1:
-            return fieldName.replaceAll("[A-Z]", split + "$0").toUpperCase();
-            case 2:
-            return fieldName.replaceAll("[A-Z]", split + "$0").toLowerCase();
-            default:
-            return fieldName.replaceAll("[A-Z]", split + "$0");
             }
 
             }
 
-            }
+
+    public static String upperCharToUnderLine(String param) {
+        Pattern p = Pattern.compile("[A-Z]");
+        if (param == null || param.equals("")) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder(param);
+        Matcher mc = p.matcher(param);
+        int i = 0;
+        while (mc.find()) {
+            builder.replace(mc.start() + i, mc.end() + i, "_" + mc.group().toLowerCase());
+            i++;
+        }
+
+        if ('_' == builder.charAt(0)) {
+            builder.deleteCharAt(0);
+        }
+        return builder.toString();
+    }
 
             private static <T> SerializedLambda getSerializedLambda(SFunction<T, ?> fn) {
                 // 从function取出序列化方法
@@ -133,9 +159,9 @@ public class Fields   {
 
                 //定义首部大写字母方法
                 public static String capital(String s) {
-                if(Character.isUpperCase(s.charAt(0)))
-                return s;
-                else
-                return (new StringBuilder()).append(Character.toUpperCase(s.charAt(0))).append(s.substring(1)).toString();
-                }
+                    if(Character.isUpperCase(s.charAt(0)))
+                        return s;
+                    else
+                        return (new StringBuilder()).append(Character.toUpperCase(s.charAt(0))).append(s.substring(1)).toString();
+                    }
                 }

@@ -54,6 +54,9 @@ public final class CookieUtils {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+        if("undefined".equals(retValue)){
+            return null;
+        }
         return retValue;
     }
 

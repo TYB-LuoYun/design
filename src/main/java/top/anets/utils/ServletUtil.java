@@ -1,6 +1,7 @@
 package top.anets.utils;
 
 
+import com.alibaba.fastjson.JSON;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -10,10 +11,14 @@ import top.anets.log.MyRequestWrapper;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,7 +60,7 @@ public class ServletUtil {
      * @return
      */
     public static String getRootUrl(HttpServletRequest req) {
-        String s = req.getRequestURI();
+        String s = req.getRequestURL().toString();
         Pattern p = Pattern.compile("([^:/])(/)");
         Matcher m = p.matcher(s);
         if (m.find()) {
@@ -215,6 +220,55 @@ public class ServletUtil {
         }
     }
 
+    public static Map<String,Object> getParams(HttpServletRequest request) {
+        Map combineResultMap = new HashMap();
+        Map<String,Object> map = new HashMap<>();
+        Enumeration paramNames = request.getParameterNames();
+        while (paramNames.hasMoreElements()) {
+            String paramName = (String) paramNames.nextElement();
+            String[] paramValues = request.getParameterValues(paramName);
+            if (paramValues.length == 1) {
+                String paramValue = paramValues[0];
+                if (paramValue.length() != 0) {
+                    map.put(paramName, paramValue);
+                }
+            }else{
+                map.put(paramName, paramValues);
+            }
+        }
+        combineResultMap.putAll(map);
+        if(!"POST".equals(request.getMethod())){
+            return combineResultMap;
+        }
+        BufferedReader reader = null;
+        try {
+            reader = request.getReader();
+            StringBuilder builder = new StringBuilder();
+            String line = reader.readLine();
+            while(line != null){
+                builder.append(line);
+                line = reader.readLine();
+            }
+            String reqBody = builder.toString();
+            Map<String,Object> map2 = JSON.parseObject(reqBody, Map.class);
+            if(map2!=null){
+                combineResultMap.putAll(map2);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            if(reader != null){
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return combineResultMap;
+    }
+
     /**
      * 内容解码
      *
@@ -231,6 +285,25 @@ public class ServletUtil {
         {
             return StringUtils.EMPTY;
         }
+    }
+
+    /**
+     * 获取目标主机的ip
+     * @return
+     */
+    public static String getCleintIp() {
+        HttpServletRequest request = getRequest();
+        String ip = request.getHeader("x-forwarded-for");
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        return ip.contains("0:0:0:0:0:0:0:1") ? "127.0.0.1" : ip;
     }
 }
 
