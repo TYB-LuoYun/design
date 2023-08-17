@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.anets.modules.tableTestData.mapper.TestDataMapper">
+
+        <!-- 通用查询映射结果 -->
+        <resultMap id="BaseResultMap" type="top.anets.modules.tableTestData.entity.TestData">
+                    <id column="id" property="id"/>
+                    <result column="balance" property="balance"/>
+        </resultMap>
+
+        <!-- 通用查询结果列 -->
+        <sql id="Base_Column_List">
+            id, balance
+        </sql>
+
+
+
+
+    <!--关联查询开始=========================================================-->
+    <resultMap id="AssociateMap" type="java.util.Map" >
+        <!--<association property="associate" select="selectAssociate" column="Status" javaType="String" ></association>-->
+    </resultMap>
+    <select id="selectAssociate" resultType="String"  >
+        <!--select DictionaryValue as StatusName from  t_dictionary where  DicCategroyCode = 'DoctorCheckStatus'-->
+        <!--and  DictionaryCode = # {Status}-->
+    </select>
+    <!-- 自定义关联查询left join  -->
+    <select id="pagesAssociate" resultMap="AssociateMap">
+        select * from  s_test_data
+    </select>
+    <!--关联查询结束=========================================================-->
+
+
+
+
+</mapper>
