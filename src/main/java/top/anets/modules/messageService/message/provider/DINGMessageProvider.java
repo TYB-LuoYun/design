@@ -10,8 +10,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import top.anets.modules.messageService.message.model.Msg;
 import top.anets.utils.HttpClientUtil;
-import top.anets.utils.dingding.AbnormalRemindUtil;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,16 +25,7 @@ public class DINGMessageProvider implements MessageProvider{
 
     @Override
     public boolean send(Msg message) {
-//        this.push("https://oapi.dingtalk.com/robot/send?access_token=e198e91c0730f637d3d39547281e5fda3a65940d1a54377a0cdf07464ddf7f06",message.getContent());
-        AbnormalRemindUtil abnormalRemindUtil = new AbnormalRemindUtil();
-        log.info(message.getContent());
-        try {
-            abnormalRemindUtil.dingTalkAbnormalPush("MonitorAlert", "异常提醒-"+message.getContent(), true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        }
+
         return true;
     }
 

@@ -50,6 +50,26 @@ public class ReflectUtil {
 
     }
 
+    /**
+     * 获取方法上的泛型
+     * @param method
+     * @param paramIndex
+     * @return
+     */
+    public static Class getMethodParamGenericType(Method method , Integer paramIndex){
+        Type[] genericParameterTypes=method.getGenericParameterTypes();
+        Type genericType  = genericParameterTypes[paramIndex];
+        if(genericType instanceof ParameterizedType){
+            ParameterizedType parameterizedType=(ParameterizedType)genericType;
+            Type[] types= parameterizedType.getActualTypeArguments();
+            for (Type type:types){
+                Class realType=(Class) type;
+                return realType;
+            }
+        }
+
+        return null;
+    }
 
     /**
      *

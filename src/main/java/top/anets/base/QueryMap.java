@@ -198,6 +198,11 @@ public class QueryMap extends LinkedHashMap<String,Object> implements Map<String
     }
 
 
+    /**
+     * 针对mysql的or操作
+     * @param <T>
+     * @return
+     */
     public <T> QueryMap or(){
         if(this.size()<=0){
             return this;
@@ -206,6 +211,31 @@ public class QueryMap extends LinkedHashMap<String,Object> implements Map<String
         orPointer=orPointer+1;
         return this;
     }
+
+    /**
+     * 针对mongo的or操作
+     * @param orList
+     * @param <T>
+     * @return
+     */
+    public <T> QueryMap or(QueryMap orList){
+        Object o = super.get(OR);
+        if(o== null){
+            super.put(OR, orList);
+            return this;
+        }
+        List<QueryMap> ors = null;
+        if(o instanceof List){
+            ors = (List)o;
+            ors.add(orList);
+        }else{
+            ors = new ArrayList();
+            ors.add(orList);
+        }
+        super.put(OR, ors);
+        return this;
+    }
+
 
 
     /**

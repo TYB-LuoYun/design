@@ -82,6 +82,7 @@ public class VerifyInterceptor implements HandlerInterceptor {
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
         //方法处理之后但是并未渲染视图的时候进行的操作
+
     }
 
     @Override

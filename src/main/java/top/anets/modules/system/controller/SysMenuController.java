@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.springframework.web.bind.annotation.*;
 import top.anets.base.*;
+import top.anets.modules.Mongodb.MongoDBUtil;
+import top.anets.modules.Mongodb.example.ExamSearchList;
 import top.anets.modules.serviceMonitor.server.Sys;
 import top.anets.modules.system.entity.Dict;
 import top.anets.modules.system.service.IDictService;
@@ -177,6 +179,8 @@ public class SysMenuController  extends BaseController<SysMenu>{
          QueryWrapper query = WrapperQuery.query(map1);
          List list = sysMenuService.list(query);
          System.out.println(list.size());
+
+
      }
 
 
@@ -202,6 +206,23 @@ public class SysMenuController  extends BaseController<SysMenu>{
         Dict dict = WrapperQuery.queryOne(dictService, Wrappers.<Dict>lambdaQuery().eq(Dict::getDeleted, "1"));
         return dict;
     }
+
+    @GetMapping("mongo")
+    public void mongo(){
+        QueryMap or = new QueryMap();
+        or.eq("InPatientNo", "3");
+        or.or();
+        or.eq("OutPatientNo", "4");
+
+        QueryMap build = QueryMap.build();
+        build.like("IdCardNo","12");
+        build.and(or);
+        IPage<ExamSearchList> page = MongoDBUtil.page(new PageQuery().Page(), WrapperQueryForMongo.query(build), ExamSearchList.class);
+        System.out.println(page);
+    }
+
+
+
 
     public static void  main(String[] args){
 
