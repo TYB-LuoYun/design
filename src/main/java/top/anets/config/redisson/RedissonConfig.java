@@ -30,21 +30,20 @@ public class RedissonConfig {
 
     @Bean
     public RedissonClient getRedisson(){
+        //
 
         Config config = new Config();
         //单机模式  依次设置redis地址和密码
 
         if(StringUtils.isNotBlank(password)){
-            config.useSingleServer().
-                    setAddress("redis://" + host + ":" + port)
-                    .setDatabase(database)
+            config.useSingleServer()
+                    .setAddress("redis://" + host + ":" + port)
                     .setPassword(password)
-            ;
-        }else{
-            config.useSingleServer().
-                    setAddress("redis://" + host + ":" + port)
-                    .setDatabase(database)
-            ;
+                    .setDatabase(database);
+        }else{config.useSingleServer()
+                .setAddress("redis://" + host + ":" + port)
+                .setDatabase(database);
+
         }
         return Redisson.create(config);
     }

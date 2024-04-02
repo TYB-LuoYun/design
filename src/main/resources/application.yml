@@ -87,7 +87,7 @@ mongodb:
 
 mongo:
   DataCenter:
-    db: DataCenter
+    db: TempTest
     host: 192.168.200.120
     port: 27017
   LogDB:

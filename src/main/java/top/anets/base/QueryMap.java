@@ -268,6 +268,28 @@ public class QueryMap extends LinkedHashMap<String,Object> implements Map<String
             return this;
         }
         List<String> sFunctions = Arrays.asList(field);
+        super.put(DESC, sFunctions);
+        return this;
+    }
+
+
+    public <T> QueryMap asc(Fields.SFunction<T, ?>... field){
+        if(field==null||field.length<=0){
+            return this;
+        }
+        List<Fields.SFunction<T, ?>> sFunctions = Arrays.asList(field);
+        List<String> collect = sFunctions.stream().map(e -> {
+            return Fields.name(e);
+        }).collect(Collectors.toList());
+        super.put(ASC, collect);
+        return this;
+    }
+
+    public <T> QueryMap asc(String... field){
+        if(field==null||field.length<=0){
+            return this;
+        }
+        List<String> sFunctions = Arrays.asList(field);
         super.put(ASC, sFunctions);
         return this;
     }
@@ -326,6 +348,25 @@ public class QueryMap extends LinkedHashMap<String,Object> implements Map<String
         if (obj == null) {
             return null;
         }
+        QueryMap queryMap = new QueryMap();
+        Field[] entityFields = ((Class)entity).getDeclaredFields();
+        if(condition instanceof Map){
+            Map<String,Object> map = (Map) condition;
+            for (Map.Entry<String,Object>  eve: map.entrySet()) {
+                for(Field entityField : entityFields){
+                    if(entityField.getName().equalsIgnoreCase(eve.getKey())){
+                        try {
+                            if(eve.getValue()!=null){
+                                queryMap.put(entityField.getName(),eve.getValue());
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            return queryMap;
+        }
         List<Field> fieldList = new ArrayList<>();
         int i = 0;
         Class<?> clazz = obj.getClass();
@@ -334,7 +375,7 @@ public class QueryMap extends LinkedHashMap<String,Object> implements Map<String
             clazz = clazz.getSuperclass();
             i++;
         }
-        QueryMap queryMap = new QueryMap();
+
         Field[] fields = new Field[fieldList.size()];
         Field[] declaredFields = fieldList.toArray(fields);
         for (Field field : declaredFields) {
@@ -360,7 +401,58 @@ public class QueryMap extends LinkedHashMap<String,Object> implements Map<String
     }
 
 
+    public static   <T> QueryMap fromIgnoreCase(Object condition,T entity){
+        Object obj =condition;
+        if (obj == null) {
+            return null;
+        }
+        QueryMap queryMap = new QueryMap();
+        Field[] entityFields = ((Class)entity).getDeclaredFields();
+        if(condition instanceof Map){
+            Map<String,Object> map = (Map) condition;
+            for (Map.Entry<String,Object>  eve: map.entrySet()) {
+                for(Field entityField : entityFields){
+                    if(entityField.getName().equalsIgnoreCase(eve.getKey())){
+                        try {
+                            if(eve.getValue()!=null){
+                                queryMap.put(entityField.getName(),eve.getValue());
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            return queryMap;
+        }
+        List<Field> fieldList = new ArrayList<>();
+        int i = 0;
+        Class<?> clazz = obj.getClass();
+        while (clazz != null && i < 2) {
+            fieldList.addAll(new ArrayList<>(Arrays.asList(clazz.getDeclaredFields())));
+            clazz = clazz.getSuperclass();
+            i++;
+        }
 
+        Field[] fields = new Field[fieldList.size()];
+        Field[] declaredFields = fieldList.toArray(fields);
+
+        for (Field field : declaredFields) {
+            for(Field entityField : entityFields){
+                if(entityField.getName().equalsIgnoreCase(field.getName())){
+                    field.setAccessible(true);
+                    try {
+                        if(field.get(obj)!=null){
+                            queryMap.put(entityField.getName(), field.get(obj));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        return queryMap;
+    }
 
 
 

@@ -33,8 +33,6 @@ public class ExamSearchListServiceImpl implements ExamSearchListService {
     private MongoTemplate mongoTemplate;
 
 
-
-
     @Override
     public void save(ExamSearchList examSearchList) {
         mongoTemplate.save(examSearchList);

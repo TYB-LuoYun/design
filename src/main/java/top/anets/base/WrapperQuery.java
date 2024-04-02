@@ -1,5 +1,6 @@
 package top.anets.base;
 
+import cn.hutool.core.convert.Convert;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -97,6 +98,10 @@ public class WrapperQuery<S1> {
                 });
             }else  if (key.contains("$desc")) {
                 wrapper.orderByDesc(fetchWord(map.get(key)));
+            }else if (key.contains("$asc")) {
+                wrapper.orderByAsc(fetchWord(map.get(key)));
+            }  else if (key.contains("$order")) {
+                wrapper.orderByAsc(fetchWord(map.get(key)));
             }else if(key.contains("$or")){
                 wrapper.or();
             }else if(key.contains("$and")){
@@ -304,7 +309,17 @@ public class WrapperQuery<S1> {
                     continue;
                 }
                 field.setAccessible(true);
-                field.set(obj, map.get(field.getName()));
+                if(field.getType()  == String.class){
+                    field.set(obj,String.valueOf(map.get(field.getName())));
+                }else if(field.getType() == Integer.class){
+                    field.set(obj, Convert.toInt(map.get(field.getName())));
+                }else if(field.getType() == Long.class){
+                    field.set(obj, Convert.toLong(map.get(field.getName())));
+                }else if(field.getType() == Boolean.class){
+                    field.set(obj, Convert.toBool(map.get(field.getName())));
+                }else{
+                    field.set(obj, map.get(field.getName()));
+                }
             }
             return obj;
         } catch (Exception e) {

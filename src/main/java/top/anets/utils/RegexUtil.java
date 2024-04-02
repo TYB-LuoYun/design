@@ -121,10 +121,6 @@ public class RegexUtil {
         }
     }
 
-    public static void main(String[] args){
-        System.out.println("sss   sss".trim());
-        System.out.println(RegexUtil.findStrByLikeMatchOne("", "r$", "role r"));
-    }
 
 
     /**
@@ -146,6 +142,45 @@ public class RegexUtil {
             }
         }
         return list;
+    }
+
+
+    public static boolean validatePassword(String password) {
+        // 密码长度不少于8位，必须包含大小写字母、数字和特殊字符
+        String regex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(password);
+
+        return matcher.matches();
+    }
+
+
+    // 使用正则表达式匹配字符出现的次数
+    public static int count(String str, String target) {
+        // 构建正则表达式，匹配目标字符// 使用Pattern.quote()来转义特殊字符
+        Pattern pattern = Pattern.compile(Pattern.quote(target));
+        Matcher matcher = pattern.matcher(str);
+        // 计数匹配到的次数
+        int count = 0;
+        while (matcher.find()) {
+            count++;
+        }
+        return count;
+    }
+
+
+    public static void main(String[] args) {
+        // 测试密码
+        String password1 = "Abcefg1$"; // 合格密码
+        String password2 = "12345678";  // 不包含特殊字符
+        String password3 = "Abcdefgh";  // 不包含数字和特殊字符
+        String password4 = "abcdefghi"; // 不包含大写字母、数字和特殊字符
+
+        System.out.println("Password 1: " + validatePassword(password1)); // true
+        System.out.println("Password 2: " + validatePassword(password2)); // false
+        System.out.println("Password 3: " + validatePassword(password3)); // false
+        System.out.println("Password 4: " + count("weue.eee.jpg", ".")); // false
     }
 
 }

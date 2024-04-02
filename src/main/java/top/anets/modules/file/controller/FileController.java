@@ -65,8 +65,6 @@ public class FileController {
     void downFile(HttpServletRequest request, HttpServletResponse response, String relativeFileUrl) throws Exception {
         //      该资源谁都可以用
          fileService.getFile(request, response, relativeFileUrl,true);
-
-
     }
 
 

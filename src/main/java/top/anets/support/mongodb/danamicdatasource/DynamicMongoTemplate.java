@@ -3,6 +3,8 @@ package top.anets.support.mongodb.danamicdatasource;
 import com.mongodb.client.MongoDatabase;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.convert.MongoConverter;
+import org.springframework.lang.Nullable;
 
 /**
  * @author ftm
@@ -13,6 +15,10 @@ public class DynamicMongoTemplate extends MongoTemplate {
 
     public DynamicMongoTemplate(MongoDatabaseFactory mongoDbFactory) {
         super(mongoDbFactory);
+    }
+
+    public DynamicMongoTemplate(MongoDatabaseFactory mongoDbFactory, @Nullable MongoConverter mongoConverter) {
+        super(mongoDbFactory,mongoConverter);
     }
 
 

@@ -1,5 +1,6 @@
 //package top.anets.support.jsonparamparse;
 //
+//import com.alibaba.fastjson.JSONArray;
 //import org.apache.commons.lang.StringUtils;
 //import org.aspectj.lang.ProceedingJoinPoint;
 //import org.aspectj.lang.annotation.Around;
@@ -11,6 +12,8 @@
 //
 //import java.lang.annotation.Annotation;
 //import java.lang.reflect.Method;
+//import java.util.ArrayList;
+//import java.util.List;
 //import java.util.Map;
 //
 ///**
@@ -58,7 +61,15 @@
 //            }
 //            try {
 //                if(map.get(paramName)!=null){
-//                    params[i] =map.get(paramName) ; //第二种方式直接修改对象
+//                    Object o  = map.get(paramName);
+//                    if(List.class.isAssignableFrom(paramClass)&o instanceof JSONArray){
+//                        JSONArray array = (JSONArray) o;
+//                        List<Object> objects =  jsonArrayToList(array);
+//                        params[i] =objects ; //第二种方式直接修改对象
+//                    }else{
+//                        params[i] =o ; //第二种方式直接修改对象
+//                    }
+//
 //                }
 //            }catch (Exception e){
 //
@@ -67,5 +78,13 @@
 //         proceed = joinPoint.proceed(params);//更新对象
 //        return proceed;
 //
+//    }
+//
+//    public  static <T> List<T> jsonArrayToList(JSONArray jsonArray ){
+//        List list = new ArrayList<>();
+//        for (int i = 0; i < jsonArray.size(); i++) {
+//            list.add(jsonArray.get(i));
+//        }
+//        return list;
 //    }
 //}

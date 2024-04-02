@@ -223,9 +223,10 @@
     <logger name="org.springframework.amqp.rabbit" level="OFF" />
     <logger name="com.xxl.job.core.util" level="OFF" />
 
-
+    <logger name="com.alibaba.nacos.client.config.impl.ClientWorker" level="OFF" />
     <logger name="org.springframework.data.mongodb.core" level="DEBUG" additivity="false">
         <appender-ref ref="console"/>
+        <appender-ref ref="DEBUG" />
     </logger>
 
     <!--单独输出，additivity="false"解决重复输出的问题-->

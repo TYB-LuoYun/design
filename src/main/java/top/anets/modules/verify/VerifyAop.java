@@ -1,4 +1,4 @@
-package top.anets.modules.verify;//package com.dicomclub.module.verify;
+    package top.anets.modules.verify;//package com.dicomclub.module.verify;
 //
 //import com.alibaba.fastjson.JSON;
 //import com.dicomclub.common.utils.*;

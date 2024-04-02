@@ -13,6 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
+import org.springframework.data.mongodb.core.convert.DbRefResolver;
+import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
+import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
+import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -35,6 +40,9 @@ public class MongodbContextHolder {
     @Autowired
     private MongodbConfig mongodbConfig;
 
+
+    @Autowired
+    private MongoMappingContext mongoMappingContext; // 注入Mon
 
     @PostConstruct
     public void afterPropertiesSet() throws UnknownHostException {
@@ -64,7 +72,14 @@ public class MongodbContextHolder {
     @Bean(name = "dynamicMongoTemplate")
     public DynamicMongoTemplate dynamicMongoTemplate() {
         Iterator<MongoDatabaseFactory> iterator = MONGO_CLIENT_DB_FACTORY_MAP.values().iterator();
-        return new DynamicMongoTemplate(iterator.next());
+        MongoDatabaseFactory mongoDatabaseFactory = iterator.next();
+        DbRefResolver dbRefResolver = new DefaultDbRefResolver(mongoDatabaseFactory);
+        mongoMappingContext.setAutoIndexCreation(true); // 可选,自动索引创建
+        MappingMongoConverter mappingConverter = new MappingMongoConverter(dbRefResolver, mongoMappingContext);
+        //去掉_class字段
+        mappingConverter.setTypeMapper(new DefaultMongoTypeMapper(null));
+
+        return new DynamicMongoTemplate(mongoDatabaseFactory,mappingConverter);
     }
 
 
