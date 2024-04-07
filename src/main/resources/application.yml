@@ -26,10 +26,89 @@ spring:
     connect-timeout: 30000ms
 
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/ftm-system?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true
-    username: root
-    password: root
+    dynamic:
+      primary: master #设置默认的数据源或者数据源组,默认值即为master
+      strict: false #严格匹配数据源,默认false. true未匹配到指定数据源时抛异常,false使用默认数据源
+      datasource:
+        master:
+          url: jdbc:mysql://127.0.0.1:3306/ftm-system?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true
+          username: root
+          password: root
+          driver-class-name: com.mysql.jdbc.Driver # 3.2.0开始支持SPI可省略此配置
+          hikari:
+            max-lifetime: 60000
+        slave_1:
+          url: jdbc:mysql://127.0.0.1:3306/job
+          username: root
+          password: root
+          driver-class-name: com.mysql.jdbc.Driver
+          hikari:
+            max-lifetime: 60000
+        #......省略
+        #以上会配置一个默认库master，一个组slave下有两个子库slave_1,slave_2
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://127.0.0.1:3306/ftm-system?useSSL=false&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true&serverTimezone=GMT%2B8&nullCatalogMeansCurrent=true&allowPublicKeyRetrieval=true
+#    username: root
+#    password: root
+
+  quartz:
+    #quartz定时任务,采用数据库方式
+    job-store-type: jdbc
+    initialize-schema: always   # 注意:initialize-schema: never,这个属性，第一次生成quartz内置表时设置为always,生成后改为never，不然每次启动系统都会重新生成表。
+    #定时任务启动开关，true-开  false-关
+    auto-startup: true
+    #延迟1秒启动定时任务
+    startup-delay: 1s
+    #启动时更新己存在的Job
+    overwrite-existing-jobs: true
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: MyScheduler
+            #ID设置为自动获取 每一个必须不同 (所有调度器实例中是唯一的)
+            instanceId: AUTO
+          jobStore:
+            class: org.springframework.scheduling.quartz.LocalDataSourceJobStore
+            #StdJDBCDelegate说明支持集群
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            #quartz内部表的前缀
+            tablePrefix: QRTZ_
+            #是否加入集群
+            isClustered: false
+            #容许的最大作业延长时间
+            misfireThreshold: 12000
+            #分布式节点有效性检查时间间隔，单位：毫秒
+            clusterCheckinInterval: 15000
+            #配置是否使用
+            useProperties: false
+          threadPool:
+            #ThreadPool实现的类名
+            class: org.quartz.simpl.SimpleThreadPool
+            #线程数量
+            threadCount: 10
+            #线程优先级
+            threadPriority: 5
+            #配置是否启动自动加载数据库内的定时任务，默认true
+            threadsInheritContextClassLoaderOfInitializingThread: true
+#            #数据库连接池，将其设置为druid
+#            org.quartz.dataSource.qzDS.connectionProvider.class=com.ruoyi.system.config.DruidConnectionProvider
+#            #数据库引擎
+#            org.quartz.dataSource.qzDS.driver=com.mysql.cj.jdbc.Driver
+#            #数据库连接
+#            org.quartz.dataSource.qzDS.URL=jdbc:mysql://127.0.0.1:3306/ry-cloud?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8&useSSL=true
+#            #数据库用户
+#            org.quartz.dataSource.qzDS.user=root
+#            #数据库密码
+#            org.quartz.dataSource.qzDS.password=abc123
+#            #允许最大连接
+#            org.quartz.dataSource.qzDS.maxConnection=5
+#            #验证查询sql,可以不设置
+#            #org.quartz.dataSource.qzDS.validationQuery=select 0 from dual
+
+
+
+
 
   rabbitmq:
     enable: false

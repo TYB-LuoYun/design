@@ -16,7 +16,7 @@ import java.util.Date;
  */
 
 @Data
-@CappedCollection(maxSize = 100,maxDocs = 2)
+@CappedCollection(maxSize = 304857600 )
 @Document(collection = "ETask")  //表名
 public class ETask {
     @Id
