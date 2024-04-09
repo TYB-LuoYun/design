@@ -7,6 +7,7 @@ package top.anets.support.mongodb.danamicdatasource;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.net.UnknownHostException;
@@ -46,22 +48,34 @@ public class MongodbContextHolder {
 
     @PostConstruct
     public void afterPropertiesSet() throws UnknownHostException {
-
         Map<String, MongodbProperties> databases = mongodbConfig.getDatabases();
         if (!CollectionUtils.isEmpty(databases)) {
             for(Entry<String, MongodbProperties> entry : databases.entrySet()) {
                 ConnectionString connectionString = new ConnectionString(entry.getValue().getUri());
-                MongoClientSettings settings = MongoClientSettings.builder()
-                        .applyConnectionString(connectionString)
-                        .build();
 
-                MongoClient mongoClient = MongoClients.create(settings);
+                MongoCredential credential =null;
+                if(!StringUtils.isEmpty(entry.getValue().getUsername())){
+                    credential =    MongoCredential.createCredential(
+                            entry.getValue().getUsername(),
+                            entry.getValue().getAuthenticationDatabase(),
+                            entry.getValue().getPassword().toCharArray());
+                }
 //                MongoTemplate template = new MongoTemplate(mongoClient, entry.getValue().getName());
 //                QueryMap queryMap = new QueryMap();
 //                Query query = WrapperQueryForMongo.query(queryMap);
 //                long count = template.count(query, ExamSearchList.class);
-                MongoDatabaseFactory item=  new SimpleMongoClientDatabaseFactory(connectionString);
-                MongodbContextHolder.MONGO_CLIENT_DB_FACTORY_MAP.put(entry.getValue().getName(),
+                MongoDatabaseFactory item=  null;
+                if(credential == null){
+                    item =  new SimpleMongoClientDatabaseFactory(connectionString);
+                }else{
+                    MongoClientSettings settings  = MongoClientSettings.builder()
+                            .applyConnectionString(connectionString)
+                            .credential(credential)
+                            .build();
+                    MongoClient mongoClient = MongoClients.create(settings);
+                    item =  new SimpleMongoClientDatabaseFactory(mongoClient, entry.getValue().getDb());
+                }
+                MongodbContextHolder.MONGO_CLIENT_DB_FACTORY_MAP.put(entry.getKey(),
                         item
                 );
             }
@@ -98,6 +112,11 @@ public class MongodbContextHolder {
 
     public static MongoDatabaseFactory getMongoDbFactory() {
         return MONGO_DB_FACTORY_THREAD_LOCAL.get();
+    }
+
+
+    public static void setMongoDbFactory(MongoDatabaseFactory factory) {
+        MONGO_DB_FACTORY_THREAD_LOCAL.set(factory);
     }
 
     public static void removeMongoDbFactory(){

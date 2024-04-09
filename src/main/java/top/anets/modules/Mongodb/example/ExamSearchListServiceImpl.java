@@ -47,9 +47,7 @@ public class ExamSearchListServiceImpl implements ExamSearchListService {
     @Override
     public void update(ExamSearchList examSearchList) {
         Query query = new Query(Criteria.where("id").is(examSearchList.get_id()));
-
         Update update = new Update();
-
         mongoTemplate.updateFirst(query, update, ExamSearchList.class);
     }
 

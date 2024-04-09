@@ -1,36 +1,20 @@
 package top.anets.support.mongodb.danamicdatasource;
 
 import com.alibaba.fastjson.JSONObject;
+import lombok.Data;
 
 /**
  * @author ftm
  * @date 2023/3/9 0009 12:33
  */
 
+@Data
 public class MongodbProperties {
 
-    private String name;
+    private String db;
     private String uri;
-
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri(String uri) {
-        this.uri = uri;
-    }
-
-    @Override
-    public String toString() {
-        return JSONObject.toJSONString(this);
-    }
+    private String username;
+    private String password;
+    private String authenticationDatabase;
+    //    private String authenticationMechanism;
 }

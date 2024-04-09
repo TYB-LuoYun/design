@@ -23,11 +23,7 @@ public class QuartzJobController {
     @Resource
     private QuartzJobService quartzJobService;
 
-    /**
-     * 查询定时任务列表
-     *
-     * @return
-     */
+
     @GetMapping("get")
     public List<QuartzBean> getQuartzList() {
         return quartzJobService.getScheduleJobList();

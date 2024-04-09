@@ -26,7 +26,7 @@ import java.sql.Statement;
 public class DataSourceController {
     @RequestMapping("query")
     public void query() throws SQLException {
-        DataSource dataSource = DataSourceUtils.createDataSource(null, null, null);
+        DataSource dataSource = DataSourceUtils.createDataSource(DataSourceUtils.Type.MYSQL,null, null, null);
         ResultSet resultSet = DataSourceUtils.excuteQuery(dataSource,"select * from user");
     }
 

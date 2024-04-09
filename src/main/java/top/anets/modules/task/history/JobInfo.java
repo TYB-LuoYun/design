@@ -1,4 +1,4 @@
-package top.anets.modules.task.entity;
+package top.anets.modules.task.history;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;

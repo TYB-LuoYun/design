@@ -7,6 +7,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,14 +31,29 @@ public class MongodbAspect {
 
     @Around("mongodbDSourcePointCut() || mongodbDSourcePointCut2()")
     public Object getMongodbDynamicDS(ProceedingJoinPoint joinPoint) throws Throwable {
+        // 获取方法签名
         MongoDB ds = getDSAnnocation(joinPoint).value();
         _logger.debug("MongodbAspect : getMongodbDynamicDS -> ds_key={}", ds.getValue());
+//       获取当前线程的db
+        MongoDatabaseFactory origin = MongodbContextHolder.getMongoDbFactory();
         MongodbContextHolder.setMongoDbFactory(ds.getValue());
         try{
-            return joinPoint.proceed();
+            Object proceed = joinPoint.proceed();
+            return proceed;
         }finally {
-            MongodbContextHolder.removeMongoDbFactory();
-            _logger.debug("MongodbAspect : getMongodbDynamicDS -> ThreadLocal has deleted ds_key={}", ds.getValue());
+            MongoDatabaseFactory now = MongodbContextHolder.getMongoDbFactory();
+            if(origin != null && origin!= now){
+//              说明在内部被移除，移除的可能性只有内部方法调用了其他方法进入了切面
+                MongodbContextHolder.setMongoDbFactory(origin);
+                _logger.debug("MongodbAspect : getMongodbDynamicDS -> ThreadLocal has recovered");
+            }else if(origin == now){
+//              说明在内部方法中还是使用了同一个库，继续使用
+                _logger.debug("MongodbAspect : getMongodbDynamicDS -> ThreadLocal continue use ds_key={}", ds.getValue());
+            }else{
+//              如果origin为null的话说明是一个新线程哈
+                MongodbContextHolder.removeMongoDbFactory();
+                _logger.debug("MongodbAspect : getMongodbDynamicDS -> ThreadLocal has deleted ds_key={}", ds.getValue());
+            }
         }
     }
 

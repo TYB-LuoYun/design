@@ -43,7 +43,23 @@ spring:
           password: root
           driver-class-name: com.mysql.jdbc.Driver
           hikari:
-            max-lifetime: 60000
+            max-lifetime:
+#        db2:  #oracle
+#          url: jdbc:oracle:thin:@//xxxx:1521/ncdb
+#          username: xxx
+#          password: xxx
+#          driver-class-name: oracle.jdbc.OracleDriver
+
+#        db2:
+#          jdbc-url: jdbc:postgresql://ip地址:端口/数据库名?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowPublicKeyRetrieval=true
+#          username: 数据库账号
+#          password: 数据库密码
+#          driver-class-name: org.postgresql.Driver
+#        db3:
+#          jdbc-url: jdbc:sqlserver://ip地址:端口;databaseName=数据库名
+#          username: 数据库账号
+#          password: 数据库密码
+#          driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
         #......省略
         #以上会配置一个默认库master，一个组slave下有两个子库slave_1,slave_2
 #    driver-class-name: com.mysql.cj.jdbc.Driver
@@ -54,7 +70,7 @@ spring:
   quartz:
     #quartz定时任务,采用数据库方式
     job-store-type: jdbc
-    initialize-schema: always   # 注意:initialize-schema: never,这个属性，第一次生成quartz内置表时设置为always,生成后改为never，不然每次启动系统都会重新生成表。
+    initialize-schema: never   # 注意:initialize-schema: never,这个属性，第一次生成quartz内置表时设置为always,生成后改为never，不然每次启动系统都会重新生成表。
     #定时任务启动开关，true-开  false-关
     auto-startup: true
     #延迟1秒启动定时任务
@@ -91,22 +107,6 @@ spring:
             threadPriority: 5
             #配置是否启动自动加载数据库内的定时任务，默认true
             threadsInheritContextClassLoaderOfInitializingThread: true
-#            #数据库连接池，将其设置为druid
-#            org.quartz.dataSource.qzDS.connectionProvider.class=com.ruoyi.system.config.DruidConnectionProvider
-#            #数据库引擎
-#            org.quartz.dataSource.qzDS.driver=com.mysql.cj.jdbc.Driver
-#            #数据库连接
-#            org.quartz.dataSource.qzDS.URL=jdbc:mysql://127.0.0.1:3306/ry-cloud?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8&useSSL=true
-#            #数据库用户
-#            org.quartz.dataSource.qzDS.user=root
-#            #数据库密码
-#            org.quartz.dataSource.qzDS.password=abc123
-#            #允许最大连接
-#            org.quartz.dataSource.qzDS.maxConnection=5
-#            #验证查询sql,可以不设置
-#            #org.quartz.dataSource.qzDS.validationQuery=select 0 from dual
-
-
 
 
 
@@ -149,15 +149,15 @@ spring:
 ##mongodb数据源, 用户名密码、鉴权这些省略，此处演示不配置
 mongodb:
   databases:
-    mongodb_1: ##这是我自定义的dbname
-      name: ${mongo.DataCenter.db}
+    DataCenter: ##这是我自定义的dbname
+      db: ${mongo.DataCenter.db}
       uri: mongodb://${mongo.DataCenter.host}:${mongo.DataCenter.port}/${mongo.DataCenter.db}
       username: ${mongo.DataCenter.username:}
       password: ${mongo.DataCenter.password:}
       authenticationDatabase: ${mongo.DataCenter.authenticationDatabase:}
 
-    mongodb_2:
-      name: ${mongo.LogDB.db}
+    LogDB:
+      db: ${mongo.LogDB.db}
       uri: mongodb://${mongo.LogDB.host}:${mongo.LogDB.port}/${mongo.LogDB.db}
       username: ${mongo.LogDB.username:}
       password: ${mongo.LogDB.password:}

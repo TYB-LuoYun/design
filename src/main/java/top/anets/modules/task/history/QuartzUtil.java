@@ -1,4 +1,4 @@
-package top.anets.modules.task;
+package top.anets.modules.task.history;
 
 import org.quartz.*;
 import org.quartz.spi.MutableTrigger;
@@ -8,7 +8,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.impl.matchers.GroupMatcher;
-import top.anets.modules.task.entity.JobInfo;
 
 import java.util.*;
 
@@ -20,10 +19,10 @@ import static org.quartz.Trigger.TriggerState.*;
 @Slf4j
 public class QuartzUtil {
 
-    private static Map<Trigger.TriggerState, String> TRIGGER_STATE;
+
 
     public static final String END_JOB_SUFFIX = ":endTask";
-
+    private static Map<Trigger.TriggerState, String> TRIGGER_STATE;
     static {
         TRIGGER_STATE = new HashMap<>();
         TRIGGER_STATE.put(NONE, "空");

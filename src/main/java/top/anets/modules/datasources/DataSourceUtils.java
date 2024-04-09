@@ -1,7 +1,9 @@
 package top.anets.modules.datasources;
 
+import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import oracle.jdbc.pool.OracleDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
@@ -15,6 +17,11 @@ import java.sql.Statement;
  * @date 2024-04-03 11:30
  */
 public class DataSourceUtils {
+    enum Type{
+        MYSQL,
+        ORACLE,
+        SQLSERVER
+    }
     /**
      * 创建数据源连接池
      * @param url
@@ -22,12 +29,40 @@ public class DataSourceUtils {
      * @param password
      * @return
      */
-    public static DataSource createDataSource(String url, String username, String password) {
+    public static DataSource createDataSource(DataSourceUtils.Type type,String url, String username, String password) {
+        if(Type.ORACLE == type){
+            DataSource oracleDataSource = null;
+            try {
+                 oracleDataSource = createOracleDataSource(url, username, password);
+            } catch (SQLException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+            return oracleDataSource;
+        }else if(Type.SQLSERVER == type){
+            return createSqlServerDataSource(url, username, password);
+        }
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(url);
         config.setUsername(username);
         config.setPassword(password);
         return new HikariDataSource(config);
+    }
+
+
+    private  static DataSource createOracleDataSource(String url, String username, String password) throws SQLException {
+        OracleDataSource dataSource  = new OracleDataSource();
+        dataSource.setURL(url);
+        dataSource.setUser(username);
+        dataSource.setPassword(password);
+        return dataSource;
+    }
+
+    private static DataSource createSqlServerDataSource(String url, String username, String password) {
+        SQLServerDataSource dataSource = new SQLServerDataSource();
+        dataSource.setURL(url);
+        dataSource.setUser(username);
+        dataSource.setPassword(password);
+        return dataSource;
     }
 
 

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import top.anets.base.*;
 import top.anets.modules.Mongodb.MongoDBUtil;
 import top.anets.modules.Mongodb.example.ExamSearchList;
+import top.anets.modules.log.appender.LogDb;
 import top.anets.modules.serviceMonitor.server.Sys;
 import top.anets.modules.system.entity.Dict;
 import top.anets.modules.system.service.IDictService;
@@ -36,6 +37,8 @@ import java.util.concurrent.Future;
 import javax.annotation.Resource;
 import org.springframework.web.bind.annotation.RestController;
 import top.anets.modules.threads.ThreadPool.ThreadPoolUtils;
+import top.anets.support.mongodb.danamicdatasource.MongoDB;
+import top.anets.support.mongodb.danamicdatasource.MongoDataSource;
 import top.anets.utils.ListUtil;
 
 /**
@@ -46,6 +49,7 @@ import top.anets.utils.ListUtil;
  * @author ftm
  * @since 2022-10-11
  */
+@LogDb
 @Api(tags = {"菜单信息表"})
 @RestController
 @RequestMapping("/sys-menu")
@@ -89,6 +93,7 @@ public class SysMenuController  extends BaseController<SysMenu>{
 
 
     @ApiOperation(value = "查询-分页-查询和返回新增字段或特殊处理")
+
     @RequestMapping("lists")
     public IPage lists(  SysMenuVo sysMenuVo, PageQuery query){
         long start = System.currentTimeMillis();
@@ -109,12 +114,6 @@ public class SysMenuController  extends BaseController<SysMenu>{
         long start = System.currentTimeMillis();
         QueryWrapper query1 = WrapperQuery.query(sysMenuVo);
         IPage  pages = sysMenuService.pages(query1, query.Page());
-        WrapperQuery.wpage(pages,SysMenuVo.class)
-                .associate(dictService).add(SysMenu::getCode, Dict::getDescription).add(SysMenu::getId, Dict::getId)
-                .fetch(false)
-                .<List<Dict>>forEach((item,dicts)->{
-                    item.setAssociate(dicts);
-                });
         long end = System.currentTimeMillis();
         System.out.println("消耗时间:"+(end-start));
         return pages;
@@ -208,6 +207,7 @@ public class SysMenuController  extends BaseController<SysMenu>{
     }
 
     @GetMapping("mongo")
+    @MongoDataSource(MongoDB.DATACENTER)
     public void mongo(){
         QueryMap or = new QueryMap();
         or.eq("InPatientNo", "3");
@@ -216,7 +216,7 @@ public class SysMenuController  extends BaseController<SysMenu>{
 
         QueryMap build = QueryMap.build();
         build.like("IdCardNo","12");
-        build.and(or);
+//        build.and(or);
         IPage<ExamSearchList> page = MongoDBUtil.page(new PageQuery().Page(), WrapperQueryForMongo.query(build), ExamSearchList.class);
         System.out.println(page);
     }
