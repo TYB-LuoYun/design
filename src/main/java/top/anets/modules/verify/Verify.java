@@ -15,5 +15,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE,ElementType.METHOD})
 public @interface Verify {
-   String value() default VerifyType.MD5withRSA;
+   String value() default SignType.AES;
 }

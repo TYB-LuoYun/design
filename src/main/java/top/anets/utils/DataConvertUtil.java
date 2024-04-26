@@ -17,7 +17,7 @@ import java.util.Map;
  * @author ftm
  * @date 2024-03-14 13:26
  */
-public class DataConvertUtil {
+public class DataConvertUtil extends Convert{
     public  static <T> List<T> jsonArrayToList(JSONArray jsonArray, Class<T> classz){
         List list = new ArrayList<>();
         for (int i = 0; i < jsonArray.size(); i++) {

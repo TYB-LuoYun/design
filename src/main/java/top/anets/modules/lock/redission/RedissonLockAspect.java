@@ -11,7 +11,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import top.anets.utils.SpElUtils;
+import top.anets.utils.SpelUtils;
 
 import java.lang.reflect.Method;
 
@@ -32,8 +32,8 @@ public class RedissonLockAspect {
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
         RedissonLock redissonLock = method.getAnnotation(RedissonLock.class);
-        String prefix = StrUtil.isBlank(redissonLock.prefixKey()) ? SpElUtils.getMethodKey(method) : redissonLock.prefixKey();//默认方法限定名+注解排名（可能多个）
-        String key = SpElUtils.parseSpEl(method, joinPoint.getArgs(), redissonLock.key());
+        String prefix = StrUtil.isBlank(redissonLock.prefixKey()) ? SpelUtils.getMethodKey(method) : redissonLock.prefixKey();//默认方法限定名+注解排名（可能多个）
+        String key = SpelUtils.parseSpEl(method, joinPoint.getArgs(), redissonLock.key());
 
         RLock lock = redissonClient.getLock(prefix + ":" + key);
         boolean lockSuccess = lock.tryLock(redissonLock.waitTime(), redissonLock.unit());

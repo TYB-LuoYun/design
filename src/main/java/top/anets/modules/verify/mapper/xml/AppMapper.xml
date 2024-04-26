@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.anets.modules.verify.mapper.AppMapper">
+
+        <!-- 通用查询映射结果 -->
+        <resultMap id="BaseResultMap" type="top.anets.modules.verify.entity.App">
+                    <id column="organ_code" property="organCode"/>
+                    <result column="provider_id" property="providerId"/>
+                    <result column="organ_name" property="organName"/>
+                    <result column="access_secret" property="accessSecret"/>
+                    <result column="ase_key_public" property="aseKeyPublic"/>
+                    <result column="update_time" property="updateTime"/>
+                    <result column="delete_flag" property="deleteFlag"/>
+        </resultMap>
+
+        <!-- 通用查询结果列 -->
+        <sql id="Base_Column_List">
+            organ_code, provider_id, organ_name, access_secret, ase_key_public, update_time, delete_flag
+        </sql>
+
+
+
+
+    <!--关联查询开始=========================================================-->
+    <resultMap id="AssociateMap" type="java.util.Map" >
+        <!--<association property="associate" select="selectAssociate" column="Status" javaType="String" ></association>-->
+    </resultMap>
+
+    <!-- 自定义关联查询left join  -->
+    <select id="pagesAssociate" resultMap="AssociateMap">
+        select * from  hr_app
+    </select>
+    <!--关联查询结束=========================================================-->
+
+
+
+
+</mapper>

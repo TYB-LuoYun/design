@@ -9,8 +9,9 @@ import lombok.Data;
 @Data
 public class NeedLog {
     //所属服务
-    private String service ;
+    private String classify ;
     //所属业务
     private String business;
+
     private String method;
 }

@@ -3,10 +3,8 @@ package top.anets.modules.Mongodb.example;
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import top.anets.support.mongodb.collection.CappedCollection;
-import top.anets.support.mongodb.danamicdatasource.MongoDB;
+import top.anets.support.mongodb.collection.CleanUpCollection;
 
 import java.util.Date;
 
@@ -16,7 +14,7 @@ import java.util.Date;
  */
 
 @Data
-@CappedCollection(maxSize = 304857600 )
+@CleanUpCollection
 @Document(collection = "ETask")  //表名
 public class ETask {
     @Id

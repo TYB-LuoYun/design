@@ -88,7 +88,7 @@ public class MongodbContextHolder {
         Iterator<MongoDatabaseFactory> iterator = MONGO_CLIENT_DB_FACTORY_MAP.values().iterator();
         MongoDatabaseFactory mongoDatabaseFactory = iterator.next();
         DbRefResolver dbRefResolver = new DefaultDbRefResolver(mongoDatabaseFactory);
-        mongoMappingContext.setAutoIndexCreation(true); // 可选,自动索引创建
+//        mongoMappingContext.setAutoIndexCreation(true); // 可选,自动索引创建
         MappingMongoConverter mappingConverter = new MappingMongoConverter(dbRefResolver, mongoMappingContext);
         //去掉_class字段
         mappingConverter.setTypeMapper(new DefaultMongoTypeMapper(null));

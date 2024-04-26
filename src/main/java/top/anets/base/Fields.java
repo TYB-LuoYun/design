@@ -53,6 +53,32 @@ public class Fields {
         return getFieldName(fn, defaultSplit);
     }
 
+
+    public static <T> Field getField(SFunction<T, ?> fn  ) {
+        String split = defaultSplit;
+        Integer toType = defaultToType;
+        SerializedLambda serializedLambda = getSerializedLambda(fn);
+        // 从lambda信息取出method、field、class等
+        String fieldName = serializedLambda.getImplMethodName().substring("get".length());
+        fieldName = fieldName.replaceFirst(fieldName.charAt(0) + "", (fieldName.charAt(0) + "").toLowerCase());
+        Field field;
+        Class<?> aClass = null;
+        try {
+            aClass = Class.forName(serializedLambda.getImplClass().replace("/", "."));
+            field = aClass.getDeclaredField(fieldName);
+        } catch (ClassNotFoundException | NoSuchFieldException e) {
+            fieldName = capital(fieldName);
+            try {
+                field = Class.forName(serializedLambda.getImplClass().replace("/", ".")).getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e1) {
+                throw new RuntimeException(e1);
+            } catch (ClassNotFoundException e1) {
+                throw new RuntimeException(e1);
+            }
+        }
+
+        return field;
+    }
     /**
     * 获取实体类的字段名称
     *

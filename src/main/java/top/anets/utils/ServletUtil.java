@@ -2,12 +2,11 @@ package top.anets.utils;
 
 
 import com.alibaba.fastjson.JSON;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import top.anets.log.MyRequestWrapper;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -16,9 +15,11 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,7 +39,32 @@ public class ServletUtil {
             throw new RuntimeException(e);
         }
     }
-
+    public static String getBodyString(final HttpServletRequest request) throws IOException {
+        String contentType = request.getContentType();
+        String bodyString = "";
+        ConcurrentHashMap<String, Object> map = new ConcurrentHashMap<>();
+        if ( StringUtils.isNotBlank(contentType) && (contentType.contains("multipart/form-data") || contentType.contains("x-www-form-urlencoded"))) {
+            Map<String, String[]> parameterMap = request.getParameterMap();
+            for (Map.Entry<String, String[]> next : parameterMap.entrySet()) {
+                String[] values = next.getValue();
+                String value = null;
+                if (values != null) {
+                    if (values.length == 1) {
+                        value = values[0];
+                    } else {
+                        value = Arrays.toString(values);
+                    }
+                }
+                map.put(next.getKey(), value);
+            }
+            if (map !=null ) {
+                bodyString = JSON.toJSONString(map);
+            }
+            return bodyString;
+        } else {
+            return IOUtils.toString(request.getInputStream());
+        }
+    }
 
     public static  String getBody(HttpServletRequest request){
         // 获取请求body
@@ -218,6 +244,14 @@ public class ServletUtil {
         {
             return StringUtils.EMPTY;
         }
+    }
+    /**
+     * 获取get/post参数
+     * @return
+     */
+    public static Map<String, Object> getParams() {
+        HttpServletRequest request = getRequest();
+        return getParams(request);
     }
 
     public static Map<String,Object> getParams(HttpServletRequest request) {
