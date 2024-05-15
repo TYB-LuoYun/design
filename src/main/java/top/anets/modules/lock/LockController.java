@@ -30,6 +30,18 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class LockController{
     private   static final Lock lock = new ReentrantLock(true);
+
+
+    @RequestMapping("testLock")
+    @RedissonLock(key = "#id",waitTime = -1)
+    public String testLock(String id) throws InterruptedException {
+        Thread.sleep(60000);
+        return id;
+    }
+
+
+
+
     @RequestMapping("reentrantLock")
     public static String ReentrantLock(Integer i) throws InterruptedException {
 

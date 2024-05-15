@@ -1,4 +1,4 @@
-package top.anets.redis;
+package top.anets.support.redis;
 
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;

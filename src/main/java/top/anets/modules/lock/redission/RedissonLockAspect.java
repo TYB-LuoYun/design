@@ -30,6 +30,7 @@ public class RedissonLockAspect {
 
     @Around("@annotation(top.anets.modules.lock.redission.RedissonLock)")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
+//        long start = System.currentTimeMillis();
         Method method = ((MethodSignature) joinPoint.getSignature()).getMethod();
         RedissonLock redissonLock = method.getAnnotation(RedissonLock.class);
         String prefix = StrUtil.isBlank(redissonLock.prefixKey()) ? SpelUtils.getMethodKey(method) : redissonLock.prefixKey();//默认方法限定名+注解排名（可能多个）
@@ -37,6 +38,7 @@ public class RedissonLockAspect {
 
         RLock lock = redissonClient.getLock(prefix + ":" + key);
         boolean lockSuccess = lock.tryLock(redissonLock.waitTime(), redissonLock.unit());
+//        System.out.println("获取锁等待时间:"+(System.currentTimeMillis()-start));
         if (!lockSuccess) {
             throw new RuntimeException("请求太频繁了，请稍后再试哦~~");
         }

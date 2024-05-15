@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import top.anets.utils.ExceptionUtil;
 import top.anets.utils.ReflectUtil;
 import top.anets.utils.RegexUtil;
 import top.anets.utils.Result;
@@ -44,7 +45,7 @@ public class GlobalExceptionHandler {
         if(cause!=null&&ServiceException.class == cause.getClass()){
             return this.doServiceException((ServiceException) cause);
         }
-        return Result.error( e.getMessage(), "||detail:"+trace);
+        return Result.error(ExceptionUtil.getErrorMsg(e), "||detail:"+trace);
     }
 
     private Throwable getLastCause(Throwable cause) {

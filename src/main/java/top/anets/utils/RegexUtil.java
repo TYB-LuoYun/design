@@ -183,4 +183,13 @@ public class RegexUtil {
         System.out.println("Password 4: " + count("weue.eee.jpg", ".")); // false
     }
 
+    public static Integer parseNumber(String str) {
+        Pattern pattern = Pattern.compile("\\d+");
+        Matcher matcher = pattern.matcher(str);
+        while (matcher.find()) {
+            String number = matcher.group(); // 提取到的数字
+            return Integer.parseInt(number);
+        }
+        return null;
+    }
 }

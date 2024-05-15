@@ -72,7 +72,7 @@ spring:
     job-store-type: jdbc
     initialize-schema: never   # 注意:initialize-schema: never,这个属性，第一次生成quartz内置表时设置为always,生成后改为never，不然每次启动系统都会重新生成表。
     #定时任务启动开关，true-开  false-关
-    auto-startup: true
+    auto-startup: false
     #延迟1秒启动定时任务
     startup-delay: 1s
     #启动时更新己存在的Job

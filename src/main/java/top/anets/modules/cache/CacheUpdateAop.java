@@ -21,7 +21,10 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Component;
 import top.anets.exception.ServiceException;
+import top.anets.modules.cache.service.RedisCaffeineCache;
+import top.anets.modules.cache.util.NullValueUtil;
 import top.anets.modules.threads.ThreadPool.ThreadPoolUtils;
+import top.anets.utils.SpelUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -47,27 +50,8 @@ public class CacheUpdateAop {
 
     @Autowired
     private RedisTemplate redisTemplate;
-
-    private final ExpressionParser parser = new SpelExpressionParser();
-    private LoadingCache<String,Object> localCache = CacheBuilder.newBuilder()
-            .maximumSize(100)
-            .expireAfterAccess(5, TimeUnit.SECONDS)
-            .build(new CacheLoader<String, Object>() {
-                @Override
-                public Semaphore load(String parameter) {
-                    return null;
-                }
-            });
-
-    private LoadingCache<String, Semaphore> parameterLocks = CacheBuilder.newBuilder()
-            .maximumSize(100)
-            .expireAfterAccess(5, TimeUnit.SECONDS)
-            .build(new CacheLoader<String, Semaphore>() {
-                @Override
-                public Semaphore load(String parameter) {
-                    return new Semaphore(1);
-                }
-            });
+    @Autowired
+    private RedisCaffeineCache redisCaffeineCache;
 
     /**
      * 2种方式修改参数值
@@ -94,25 +78,19 @@ public class CacheUpdateAop {
             //      获取唯一参数签名
             unikey  = getParamUniKey(params,parameterNames);
         }else{
-            EvaluationContext context = new StandardEvaluationContext();
-            for (int i = 0; i < params.length; i++) {
-                context.setVariable(parameterNames[i], params[i]);
-            }
             // 解析SpEL表达式
             String keyExpression =cache.key();
-            String value = parser.parseExpression(keyExpression).getValue(context, String.class);
+            String value = SpelUtils.parseSmart(method, params, keyExpression);
             unikey =  value;
         }
 
         String key = prefix +"-"+ unikey;
         Object cacheNow  = joinPoint.proceed(params);//更新对象
         if(cache.delete() == true){
-            redisTemplate.delete(key );
+            redisCaffeineCache.evict(key );
            return cacheNow;
         }
-        redisTemplate.opsForValue().set(key,cacheNow);
-
-
+        redisCaffeineCache.set(key, cacheNow);
         return cacheNow;
     }
 
