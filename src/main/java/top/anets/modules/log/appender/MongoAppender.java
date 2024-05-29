@@ -72,7 +72,7 @@ public class MongoAppender<E> extends AppenderBase<LoggingEvent> {
                 Throwable throwable = ((ThrowableProxy) proxy).getThrowable();
                 Throwable cause = getLastCause(throwable);
                 if(throwable instanceof ServiceException || (cause!=null&&cause instanceof ServiceException)
-//                  || throwable instanceof ControllerException || (cause!=null&&cause instanceof ControllerException)
+//                  || throwable instanceof ServiceException || (cause!=null&&cause instanceof ServiceException)
                 ){
                     attach = getErrorMsg(throwable,cause);
                 }else{
@@ -98,7 +98,7 @@ public class MongoAppender<E> extends AppenderBase<LoggingEvent> {
         String msg = "";
         if(cause!=null){
             if(cause instanceof ServiceException
-//                    || cause instanceof ControllerException
+//                    || cause instanceof ServiceException
             ){
                 return  cause.getMessage();
             }else if(cause == throwable&&cause.getMessage()!=null){

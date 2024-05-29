@@ -16,6 +16,8 @@ import java.util.*;
  * @version $Id: DateUtil.java, v 0.1 2017年4月14日 上午8:58:11 gxw
  */
 public final class DateUtil {
+    public static final String PATTERN_DATE_CHINA = "yyyy年MM月dd日 HH:mm:ss";
+
     private DateUtil() {
     }
 

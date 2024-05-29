@@ -2,6 +2,7 @@ package top.anets.utils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -12,6 +13,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Component;
@@ -48,6 +50,34 @@ public class HttpClientUtil {
 		return null;
 	}
 
+
+
+	public static String doPost2(String url, JSONObject param) {
+		HttpPost httpPost = null;
+		String result = null;
+		try {
+			HttpClient client = new DefaultHttpClient();
+			httpPost = new HttpPost(url);
+			if (param != null) {
+				StringEntity se = new StringEntity(param.toString(), "utf-8");
+				httpPost.setEntity(se); // post方法中，加入json数据
+				httpPost.setHeader("Content-Type", "application/json");
+				httpPost.setHeader("Authorization", param.getString("authorization"));
+			}
+
+			HttpResponse response = client.execute(httpPost);
+			if (response != null) {
+				HttpEntity resEntity = response.getEntity();
+				if (resEntity != null) {
+					result = EntityUtils.toString(resEntity, "utf-8");
+				}
+			}
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return result;
+	}
 
 	public static String doGet(String url, Map<String, Object> map, String charset, Header[] headers) {
 		if(map!=null&&map.size()>0){

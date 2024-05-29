@@ -1,1 +1,0 @@
-2022-09-28 16:07:10.263 [main] WARN  org.mybatis.spring.mapper.ClassPathMapperScanner - No MyBatis mapper was found in '[com.ruoyi.module.**.mapper]' package. Please check your configuration.

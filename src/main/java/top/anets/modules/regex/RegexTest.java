@@ -27,15 +27,7 @@ public class RegexTest {
 //[^,。]    非逗号也非句号的字符
 //*代表{0,}　+代表{1,}　?代表{0,1}
     public static void main(String[] args) {
-
-
-
-
-       perfectUrl();
-
-
-
-
+//       perfectUrl();
     }
 
 

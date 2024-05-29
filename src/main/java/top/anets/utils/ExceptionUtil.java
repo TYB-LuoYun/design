@@ -20,7 +20,7 @@ public class ExceptionUtil {
         String msg = "";
         if(cause!=null){
             if(cause instanceof ServiceException
-//                    || cause instanceof ControllerException
+//                    || cause instanceof ServiceException
             ){
                 return  cause.getMessage();
             }else if(cause == throwable&&cause.getMessage()!=null){
