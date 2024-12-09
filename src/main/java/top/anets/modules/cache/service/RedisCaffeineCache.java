@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import top.anets.modules.cache.model.NullValue;
 import top.anets.modules.cache.util.NullValueUtil;
 
+import javax.annotation.Resource;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class RedisCaffeineCache extends AbstractCache{
-    @Autowired
+    @Resource
     private RedisTemplate redisTemplate;
 
       Cache<String, Object> LocalCache = Caffeine.newBuilder()

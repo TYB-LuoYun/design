@@ -2,6 +2,8 @@ package top.anets.modules.Mongodb.cleanup;
 
 import cn.hutool.core.date.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.CollectionOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import top.anets.modules.Mongodb.example.ETask;
 import top.anets.modules.serviceMonitor.server.Sys;
+import top.anets.support.mongodb.danamicdatasource.MongodbConfig;
 
 import java.util.Date;
 import java.util.List;
@@ -23,6 +26,7 @@ import java.util.List;
  */
 @RequestMapping("document")
 @RestController
+@ConditionalOnBean(MongoTemplate.class)
 public class DocumentCleanController {
     @Autowired
     private MongoTemplate mongoTemplate;

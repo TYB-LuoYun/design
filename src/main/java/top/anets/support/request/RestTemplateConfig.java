@@ -1,4 +1,4 @@
-package top.anets.config;
+package top.anets.support.request;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

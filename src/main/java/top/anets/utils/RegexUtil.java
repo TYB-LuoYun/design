@@ -1,5 +1,6 @@
 package top.anets.utils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -29,6 +30,21 @@ public class RegexUtil {
         }
         return strs;
     }
+
+
+    /**
+     * 提取数字
+     */
+    public static BigDecimal fetchNumber(String str){
+        List<String> strs = new ArrayList<String>();
+        Pattern p =Pattern.compile("([0-9]*\\.[0-9]+|[0-9]+)");
+        Matcher m = p.matcher(str);
+        if(m.find()) {
+            return new BigDecimal(m.group());
+        }
+        return null;
+    }
+
 
     /**
      * 从文本查找符合 正则 的字符串

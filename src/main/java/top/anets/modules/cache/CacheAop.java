@@ -12,6 +12,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.expression.EvaluationContext;
@@ -59,6 +60,7 @@ import java.util.concurrent.TimeUnit;
 @Aspect
 @Order(0)//确保比事务注解先执行，分布式锁在事务外
 @Component
+@ConditionalOnBean(RedisTemplate.class)
 public class CacheAop {
 
     @Pointcut("@annotation(top.anets.modules.cache.enums.Cache)")
