@@ -16,5 +16,6 @@ public class MongodbProperties {
     private String username;
     private String password;
     private String authenticationDatabase;
+    private String enable;
     //    private String authenticationMechanism;
 }

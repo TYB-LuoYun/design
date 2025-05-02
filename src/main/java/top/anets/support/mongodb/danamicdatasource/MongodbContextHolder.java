@@ -39,7 +39,7 @@ public class MongodbContextHolder {
     // 当前线程ThreadLocal绑定的数据源工厂
     private static final ThreadLocal<MongoDatabaseFactory> MONGO_DB_FACTORY_THREAD_LOCAL = new ThreadLocal<>();
 
-    @Autowired
+    @Autowired(required = false)
     private MongodbConfig mongodbConfig;
 
 
@@ -49,6 +49,9 @@ public class MongodbContextHolder {
     @PostConstruct
     public void afterPropertiesSet() throws UnknownHostException {
         Map<String, MongodbProperties> databases = mongodbConfig.getDatabases();
+        if(mongodbConfig == null || "false".equals(mongodbConfig.getEnable())){
+            return;
+        }
         if (!CollectionUtils.isEmpty(databases)) {
             for(Entry<String, MongodbProperties> entry : databases.entrySet()) {
                 ConnectionString connectionString = new ConnectionString(entry.getValue().getUri());

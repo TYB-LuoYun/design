@@ -1,4 +1,4 @@
-package top.anets.modules.threads.springThreadpool;
+package top.anets.support.springThreadpool;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

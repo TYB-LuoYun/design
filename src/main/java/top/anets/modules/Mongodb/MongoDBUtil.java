@@ -6,6 +6,8 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.client.result.UpdateResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -14,6 +16,7 @@ import org.springframework.data.mongodb.core.query.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import top.anets.support.mongodb.danamicdatasource.MongodbConfig;
 
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
@@ -23,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@ConditionalOnBean(MongodbConfig.class)
 public class MongoDBUtil {
     private static final Query EMPTY_QUERY = new BasicQuery("{}");
     private static  MongoTemplate template;
