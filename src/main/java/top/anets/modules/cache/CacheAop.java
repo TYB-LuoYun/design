@@ -81,7 +81,7 @@ public class CacheAop {
     @Around("pointCut()")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         Object[] params = joinPoint.getArgs();
-        //获取方法，此处可将signature强转为MethodSignature
+        //获取方法，此处可将signature强转为MethodSignature1234567
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
         // 获取目标方法的参数名数组
