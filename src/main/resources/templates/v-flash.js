@@ -1,3 +1,39 @@
+//
+// .v-flash-anim-yellow {
+//   animation: flashYellow 1s ease;
+// }
+//
+// .v-flash-anim-green {
+//   animation: flashGreen 1s ease;
+// }
+//
+// .v-flash-anim-red {
+//   animation: flashRed 1s ease;
+// }
+//
+// @keyframes flashYellow {
+//   0% { background-color: #fff3cd; }
+//   50% { background-color: #ffeeba; }
+//   100% { background-color: transparent; }
+// }
+//
+// @keyframes flashGreen {
+//   0% { background-color: #d4edda; }
+//   50% { background-color: #a3d7a5; }
+//   100% { background-color: transparent; }
+// }
+//
+// @keyframes flashRed {
+//   0% { background-color: #f8d7da; }
+//   50% { background-color: #e09b9b; }
+//   100% { background-color: transparent; }
+// }
+//
+
+
+
+
+
 function triggerFlash(el, colorClass) {
   el.classList.remove('v-flash-anim-red', 'v-flash-anim-green', 'v-flash-anim-yellow');
   void el.offsetWidth; // 触发重绘，重启动画
