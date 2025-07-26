@@ -11,14 +11,12 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-//import org.springframework.data.mongodb.core.mapping.Document;
-
 /**
  * @Author ftm
  * @Date 2023-01-30 10:25:18
  * @Description 字段名提取器
  */
-public class Fields {
+public class Fields   {
     /**
      * 使Function获取序列化能力
      */
@@ -40,53 +38,24 @@ public class Fields {
     static Integer defaultToType = 0;
 
     /**
-     * 获取实体类的字段名称(实体声明的字段名称)
+     * 获取实体类的字段名称
      */
     public static <T> String getFieldName(SFunction<T, ?> fn) {
-    return getFieldName(fn, defaultSplit);
+    return getFieldName(fn, defaultSplit,1);
     }
 
     /**
-    * 获取实体类的字段名称(实体声明的字段名称)
+    * 获取表字段
     */
     public static <T> String name(SFunction<T, ?> fn) {
-        return getFieldName(fn, defaultSplit);
-    }
-
-
-    public static <T> Field getField(SFunction<T, ?> fn  ) {
-        String split = defaultSplit;
-        Integer toType = defaultToType;
-        SerializedLambda serializedLambda = getSerializedLambda(fn);
-        // 从lambda信息取出method、field、class等
-        String fieldName = serializedLambda.getImplMethodName().substring("get".length());
-        fieldName = fieldName.replaceFirst(fieldName.charAt(0) + "", (fieldName.charAt(0) + "").toLowerCase());
-        Field field;
-        Class<?> aClass = null;
-        try {
-            aClass = Class.forName(serializedLambda.getImplClass().replace("/", "."));
-            field = aClass.getDeclaredField(fieldName);
-        } catch (ClassNotFoundException | NoSuchFieldException e) {
-            fieldName = capital(fieldName);
-            try {
-                field = Class.forName(serializedLambda.getImplClass().replace("/", ".")).getDeclaredField(fieldName);
-            } catch (NoSuchFieldException e1) {
-                throw new RuntimeException(e1);
-            } catch (ClassNotFoundException e1) {
-                throw new RuntimeException(e1);
-            }
-        }
-
-        return field;
+        return getFieldName(fn, defaultSplit,defaultToType);
     }
     /**
-    * 获取实体类的字段名称
-    *
-    * @param split 分隔符，多个字母自定义分隔符
-    */
-    public static <T> String getFieldName(SFunction<T, ?> fn, String split) {
-        return getFieldName(fn, split, defaultToType);
-        }
+     * 获取表字段
+     */
+    public static <T> String getTFieldName(SFunction<T, ?> fn) {
+        return getFieldName(fn, defaultSplit,defaultToType);
+    }
 
         /**
         * 获取实体类的字段名称
@@ -94,7 +63,7 @@ public class Fields {
         * @param split  分隔符，多个字母自定义分隔符
         * @param toType 转换方式，多个字母以大小写方式返回 0.不做转换 1.大写 2.小写
         */
-        public static <T> String getFieldName(SFunction<T, ?> fn, String split, Integer toType) {
+        private static <T> String getFieldName(SFunction<T, ?> fn, String split, Integer toType) {
             SerializedLambda serializedLambda = getSerializedLambda(fn);
 
             // 从lambda信息取出method、field、class等
@@ -125,7 +94,12 @@ public class Fields {
 //                return fieldName;
 //            }
             else{
-                return upperCharToUnderLine(fieldName);
+              switch (toType){
+                  case 1:
+                      return fieldName;
+                  default:
+                      return upperCharToUnderLine(fieldName);
+              }
 //            //0.不做转换 1.大写 2.小写
 //            switch (toType) {
 //            case 1:
@@ -138,7 +112,35 @@ public class Fields {
 
             }
 
+        }
+
+
+
+    public static <T> Field getField(SFunction<T, ?> fn  ) {
+        String split = defaultSplit;
+        Integer toType = defaultToType;
+        SerializedLambda serializedLambda = getSerializedLambda(fn);
+        // 从lambda信息取出method、field、class等
+        String fieldName = serializedLambda.getImplMethodName().substring("get".length());
+        fieldName = fieldName.replaceFirst(fieldName.charAt(0) + "", (fieldName.charAt(0) + "").toLowerCase());
+        Field field;
+        Class<?> aClass = null;
+        try {
+            aClass = Class.forName(serializedLambda.getImplClass().replace("/", "."));
+            field = aClass.getDeclaredField(fieldName);
+        } catch (ClassNotFoundException | NoSuchFieldException e) {
+            fieldName = capital(fieldName);
+            try {
+                field = Class.forName(serializedLambda.getImplClass().replace("/", ".")).getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e1) {
+                throw new RuntimeException(e1);
+            } catch (ClassNotFoundException e1) {
+                throw new RuntimeException(e1);
             }
+        }
+
+        return field;
+    }
 
 
     public static String upperCharToUnderLine(String param) {

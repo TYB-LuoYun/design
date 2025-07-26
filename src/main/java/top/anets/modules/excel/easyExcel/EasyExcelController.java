@@ -67,7 +67,6 @@ public class EasyExcelController {
             response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
             response.setHeader("Content-disposition", "attachment;filename=" +  URLEncoder.encode(fileName,"UTF-8") + ".xlsx");
 
-
             EasyExcel.write(response.getOutputStream(),EasyExcelTest.class)
                     .sheet("sheet1")
                     .doWrite(list);

@@ -1,20 +1,16 @@
 package top.anets.base;
 
-import cn.hutool.core.convert.Convert;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.ObjectUtils;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import top.anets.modules.system.entity.SysMenu;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -24,7 +20,7 @@ import java.util.regex.Pattern;
 
 /**
  * @Author ftm
- * @Date 2022-10-11 12:58:41
+ * @Date 2025-05-24 09:19:05
  * @Description Query条件构造器
  */
 @Data
@@ -51,10 +47,10 @@ public class WrapperQuery<S1> {
         for (Map.Entry<String,Object> item: map.entrySet()) {
             String key = item.getKey();//字段名
             if (Exclude.contains(key)) {
-                return;
+                continue;
             }
             if (map.get(key) == null || map.get(key) == "") {
-                return;
+                continue;
             }
             String column = "";
             if(key.contains("$in")){
@@ -98,10 +94,6 @@ public class WrapperQuery<S1> {
                 });
             }else  if (key.contains("$desc")) {
                 wrapper.orderByDesc(fetchWord(map.get(key)));
-            }else if (key.contains("$asc")) {
-                wrapper.orderByAsc(fetchWord(map.get(key)));
-            }  else if (key.contains("$order")) {
-                wrapper.orderByAsc(fetchWord(map.get(key)));
             }else if(key.contains("$or")){
                 wrapper.or();
             }else if(key.contains("$and")){
@@ -237,7 +229,7 @@ public class WrapperQuery<S1> {
 
 
     public static String underline2Camel(String line, boolean... smallCamel) {
-        if (org.apache.commons.lang3.StringUtils.isBlank(line)) {
+        if (StringUtils.isBlank(line)) {
             return "";
         }
         StringBuffer sb = new StringBuffer();
@@ -309,17 +301,7 @@ public class WrapperQuery<S1> {
                     continue;
                 }
                 field.setAccessible(true);
-                if(field.getType()  == String.class){
-                    field.set(obj,String.valueOf(map.get(field.getName())));
-                }else if(field.getType() == Integer.class){
-                    field.set(obj, Convert.toInt(map.get(field.getName())));
-                }else if(field.getType() == Long.class){
-                    field.set(obj, Convert.toLong(map.get(field.getName())));
-                }else if(field.getType() == Boolean.class){
-                    field.set(obj, Convert.toBool(map.get(field.getName())));
-                }else{
-                    field.set(obj, map.get(field.getName()));
-                }
+                field.set(obj, map.get(field.getName()));
             }
             return obj;
         } catch (Exception e) {
@@ -378,8 +360,18 @@ public class WrapperQuery<S1> {
         return  iService.page(iPage,queryWrapper );
     }
 
+
+
+
+
+
     public static <T> T queryOne(IService iService, Wrapper<T> queryWrapper){
         return  queryOne(iService,queryWrapper ,false );
+    }
+
+
+    public static <T> T queryOne(IService<T> iService, QueryMap queryMap){
+        return  queryOne(iService,queryMap.wrapper() ,false );
     }
 
 
@@ -1123,5 +1115,28 @@ public class WrapperQuery<S1> {
         associateWrapper(records, this.associates, map, true,strings);
         this.associateMap = map;
         return this;
+    }
+
+
+
+
+    public static<T> IPage<T>   page(IService<T> iService  , QueryMap queryMap, PageQuery pageQuery) {
+        return  queryPage(iService,queryMap.wrapper(),pageQuery.Page());
+    }
+
+    public static<T> List<T> list(IService<T> iService, QueryMap queryMap) {
+        return  iService.list(queryMap.wrapper());
+    }
+    public static<T> List<T> list(IService<T> iService ) {
+        return  iService.list( );
+    }
+
+    
+    public static<T> Map<String, Object>  queryMap( IService<T> iService, QueryMap queryMap) {
+        Map<String, Object> map = iService.getMap(queryMap.wrapper());
+        if(map!=null){
+            return  Collections.emptyMap();
+        }
+        return map;
     }
 }

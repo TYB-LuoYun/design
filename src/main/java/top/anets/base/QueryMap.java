@@ -1,6 +1,7 @@
 package top.anets.base;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.experimental.Accessors;
 
 import java.lang.reflect.Field;
@@ -8,7 +9,8 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static top.anets.base.WrapperQuery.upperCharToUnderLine;
+import static com.ruoyi.common.base.WrapperQuery.fetchWord;
+import static com.ruoyi.common.base.WrapperQuery.upperCharToUnderLine;
 
 
 /**
@@ -16,23 +18,23 @@ import static top.anets.base.WrapperQuery.upperCharToUnderLine;
  * @date 2023/3/2 0002 15:35
  */
 @Accessors(chain = true)
-public class QueryMap extends LinkedHashMap<String,Object> implements Map<String,Object> {
+public class  QueryMap extends LinkedHashMap<String,Object> implements Map<String,Object> {
 
-    final private String LIKE = "$like";
-    final private String IN = "$in";
-    final private String NOTIN = "$notin";
-    final private String GT = "$gt";
-    final private String LT = "$lt";
-    final private String GTE = "$gte";
-    final private String LTE = "$lte";
-    final private String DESC = "$desc";
-    final private String ASC = "$asc";
-    final private String ORDER = "$order";
-    final private String OR = "$or";
-    final private String AND = "$and";
-
-
-
+    final private static String LIKE = "$like";
+    final private  static String IN = "$in";
+    final private  static String NOTIN = "$notin";
+    final private  static String GT = "$gt";
+    final private  static String LT = "$lt";
+    final private  static String GTE = "$gte";
+    final private  static String LTE = "$lte";
+    final private  static String DESC = "$desc";
+    final private  static String ASC = "$asc";
+    final private  static String ORDER = "$order";
+    final private  static String OR = "$or";
+    final private  static String AND = "$and";
+    final private static String GROUPBY = "$groupBy";
+    final private static String SELECT = "$select";
+    final private static String APPLY = "$apply";
     private Integer orPointer = 0;
     private Integer andPointer = 0;
 
@@ -42,6 +44,31 @@ public class QueryMap extends LinkedHashMap<String,Object> implements Map<String
         return new QueryMap();
     }
 
+    @SafeVarargs
+    public static <T> QueryMap pickResult(T source,  Fields.SFunction<T, ?>... getters) {
+        if(source == null){
+            return null;
+        }
+        QueryMap result = new QueryMap();
+        for (Fields.SFunction<T, ?> getter : getters) {
+            String fieldName = Fields.getFieldName(getter); // 提取字段名
+            Object value = getter.apply(source);    // 执行 getter 拿值
+            result.put(fieldName, value);
+        }
+        return result;
+    }
+
+
+    public <T> QueryWrapper<T> wrapper() {
+        QueryWrapper <T> queryWrapper   = new QueryWrapper<T>();
+        setCriteria(queryWrapper,this);
+        return queryWrapper;
+    }
+
+
+    public static  <T> QueryWrapper  wrapper(T t) {
+        return new QueryWrapper<T>(t);
+    }
 
     public <T> QueryMap put(Fields.SFunction<T, ?> field,Object value){
         super.put( Fields.name(field), value);
@@ -64,11 +91,50 @@ public class QueryMap extends LinkedHashMap<String,Object> implements Map<String
         super.put(Fields.name(field), value);
         return this;
     }
+    public <T> QueryMap groupBy(Fields.SFunction<T, ?>  field) {
+        super.put(GROUPBY, Fields.name(field));
+        return this;
+    }
+
+    public <T> QueryMap groupBy(Fields.SFunction<T, ?>... fields) {
+        String joinedFields = Arrays.stream(fields)
+                .map(Fields::name)
+                .collect(Collectors.joining(","));
+        super.put(GROUPBY, joinedFields);
+        return this;
+    }
+
+    public <T> QueryMap select(String select) {
+        super.put(SELECT, select);
+        return this;
+    }
+
+    public <T> QueryMap apply(String condition) {
+        super.put(APPLY, condition);
+        return this;
+    }
+
+
+    public <T> QueryMap select(Fields.SFunction<T, ?>... fields) {
+        String joinedFields = Arrays.stream(fields)
+                .map(Fields::name)
+                .collect(Collectors.joining(","));
+        super.put(SELECT, joinedFields);
+        return this;
+    }
+
+    public <T> QueryMap select(Fields.SFunction<T, ?> field) {
+        super.put(SELECT, Fields.name(field));
+        return this;
+    }
+
 
     public <T> QueryMap eq(String field,Object value){
         super.put(field, value);
         return this;
     }
+
+
 
     public <T>  QueryMap like(Fields.SFunction<T, ?> field,Object value){
         like(Fields.name(field),value );
@@ -352,7 +418,7 @@ public class QueryMap extends LinkedHashMap<String,Object> implements Map<String
         Field[] entityFields = ((Class)entity).getDeclaredFields();
         if(condition instanceof Map){
             Map<String,Object> map = (Map) condition;
-            for (Map.Entry<String,Object>  eve: map.entrySet()) {
+            for (Entry<String,Object>  eve: map.entrySet()) {
                 for(Field entityField : entityFields){
                     if(entityField.getName().equalsIgnoreCase(eve.getKey())){
                         try {
@@ -382,7 +448,7 @@ public class QueryMap extends LinkedHashMap<String,Object> implements Map<String
             field.setAccessible(true);
             try {
                 if(Modifier.isStatic(field.getModifiers())){
-                   continue;
+                    continue;
                 }
                 if(field.get(obj)!=null&&((Class)entity).getDeclaredField(field.getName())!=null){
 
@@ -410,7 +476,7 @@ public class QueryMap extends LinkedHashMap<String,Object> implements Map<String
         Field[] entityFields = ((Class)entity).getDeclaredFields();
         if(condition instanceof Map){
             Map<String,Object> map = (Map) condition;
-            for (Map.Entry<String,Object>  eve: map.entrySet()) {
+            for (Entry<String,Object>  eve: map.entrySet()) {
                 for(Field entityField : entityFields){
                     if(entityField.getName().equalsIgnoreCase(eve.getKey())){
                         try {
@@ -464,6 +530,78 @@ public class QueryMap extends LinkedHashMap<String,Object> implements Map<String
         queryMap.puts("www", "3").puts("333", 3);
         System.out.println(queryMap);
     }
+
+
+
+
+    public static   void setCriteria(QueryWrapper wrapper  , Map<String, Object> map){
+        for (Entry<String,Object> item: map.entrySet()) {
+            String key = item.getKey();//字段名
+
+            if (map.get(key) == null || map.get(key) == "") {
+                continue;
+            }
+            String column = "";
+            if(key.contains("$in")){
+                column=key.replace("$in", "");
+                List<String> strs = fetchWord( map.get(key));
+                wrapper.in(column,strs);
+            }else if(key.contains("$notin")){
+                column=key.replace("$notin", "");
+                List<String> strs = fetchWord( map.get(key));
+                wrapper.notIn(column,strs);
+            }else if (key.contains("$like")) {
+                column = key.replace("$like", "");
+                wrapper.like(column, map.get(key));
+            } else if (key.contains("$lte")) {
+                column = key.replace("$lte", "");
+                wrapper.le(column, map.get(key));
+            } else if (key.contains("$gte")) {
+                column = key.replace("$gte", "");
+                wrapper.ge(column, map.get(key));
+            } else if (key.contains("$lt")) {
+                column = key.replace("$lt", "");
+                wrapper.lt(column, map.get(key));
+            } else if (key.contains("$gt")) {
+                column = key.replace("$gt", "");
+                wrapper.gt(column, map.get(key));
+            }  else if (key.contains("$notNull")) {
+                List<String> strings = fetchWord(map.get(key));
+                if (strings == null) {
+                    return;
+                }
+                strings.forEach(each -> {
+                    wrapper.isNotNull(each);
+                });
+            } else if (key.contains("$isNull")) {
+                List<String> strings = fetchWord(map.get(key));
+                if (strings == null) {
+                    return;
+                }
+                strings.forEach(each -> {
+                    wrapper.isNull(each);
+                });
+            }else  if (key.contains("$desc")) {
+                wrapper.orderByDesc(fetchWord(map.get(key)));
+            }else if(key.contains("$or")){
+                wrapper.or();
+            }else if(key.contains("$and")){
+                wrapper.and(wrapperand->{
+                    Map o = (Map) map.get(key);
+                    setCriteria((QueryWrapper) wrapperand, o);
+                });
+            }else if(key.contains(GROUPBY)){
+                wrapper.groupBy(map.get(key));
+            }else if(key.contains(SELECT)){
+                wrapper.select((String) map.get(key));
+            }else if(key.contains(APPLY)){
+                wrapper.apply((String) map.get(key));
+            }else{
+                wrapper.eq(key,map.get(key) );
+            }
+        }
+    }
+
 
 
 
